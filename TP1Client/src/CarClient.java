@@ -10,6 +10,7 @@ public class CarClient {
 	private static void parseArgs(String[] args) {
 		if (args.length < 4) {
 			System.out.println("Error no args");
+			System.out.println("java CarClient <host_name> <server_port> <oper> <opnd>*");
 			System.exit(0);
 		}
 		host = args[0];
@@ -32,10 +33,11 @@ public class CarClient {
 		if (owner != null) {
 			msgStr += " " + owner;
 		}
+		System.out.println("Client Sending: " + msgStr);
 		byte[] msg = msgStr.getBytes();
 		
 		try {
-			byte[] replyMsg = new byte[1024];
+			byte[] replyMsg = new byte[512];
 			
 			serverAddress = Inet4Address.getByName(host);
 			clientSocket = new DatagramSocket();
