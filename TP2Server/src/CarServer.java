@@ -4,30 +4,31 @@ import java.util.HashMap;
 
 public class CarServer {
 
-	private static int port;
-	private static DatagramSocket serverSocket;
+	private static int srvc_port;
+	private static InetAddress mcast_addr;
+	private static int mcast_port;
+	private static MulticastSocket serverSocket;
 	private static DatagramPacket receivedPacket;
 	private static DatagramPacket sendPacket;
 	private static HashMap<String,String> storedData = new HashMap<String,String>();
 	
-	private static void parseArgs(String[] args){
-		if (args.length < 1) {
-			System.out.println("Error no args");
-			System.out.println("java CarServer <server_port>");
+	private static void parseArgs(String[] args) throws UnknownHostException {
+		if (args.length != 3) {
+			System.out.println("Error args");
+			System.out.println("java CarServer <srvc_port> <mcast_addr> <mcast_port>");
 			System.exit(0);
 		}
-		port = Integer.parseInt(args[0]);
+		srvc_port = Integer.parseInt(args[0]);
+		mcast_addr = InetAddress.getByName(args[1]);
+		mcast_port = Integer.parseInt(args[2]);
+		
 	}
 	
-	private static void setupConnection() {
-		try {
-			
-			serverSocket = new DatagramSocket(port);
-			System.out.println("Server listening on port " + port);
-		} catch (SocketException e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
+	private static void setupConnection() throws IOException {
+			serverSocket = new MulticastSocket(mcast_port);
+			serverSocket.joinGroup(mcast_addr);
+			System.out.println("Server listening on port " + srvc_port);
+
 	}
 	
 	private static void serverIteration() {
@@ -66,12 +67,13 @@ public class CarServer {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		parseArgs(args);
-		setupConnection();
-		while (true) {
-			serverIteration();
-		}
+		
+		Thread multicastThread = new Thread(new Multicast());
+		Thread serviceThread = new Thread(new Service());
+		multicastThread.start();
+		serviceThread.start();
 	}
 
 }
