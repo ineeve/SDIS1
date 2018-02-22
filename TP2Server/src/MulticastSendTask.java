@@ -5,6 +5,7 @@ import java.util.TimerTask;
 
 public class MulticastSendTask extends TimerTask {
 	
+	private Multicast multicast;
 	private MulticastSocket socket;
 	private DatagramPacket packet;
 
@@ -17,6 +18,7 @@ public class MulticastSendTask extends TimerTask {
 	public void run() {
 		try {
 			socket.send(packet);
+			System.out.println();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

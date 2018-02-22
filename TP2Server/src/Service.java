@@ -13,18 +13,14 @@ public class Service implements Runnable {
 	private DatagramPacket receivedPacket;
 	private DatagramPacket sendPacket;
 
-	public Service(int srvc_port) {
+	public Service(int srvc_port) throws IOException {
 		this.srvc_port = srvc_port;
+		setupConnection();
 	}
 	
 	public void run() {
-		try {
-			setupConnection();
-			while (true) {
-				serverIteration();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		while (true) {
+			serverIteration();
 		}
 	}
 	public InetAddress getAddress() {

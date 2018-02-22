@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.*;
 import java.util.HashMap;
+import java.util.Timer;
 
 public class CarServer {
 
@@ -23,11 +24,13 @@ public class CarServer {
 	public static void main(String[] args) throws IOException {
 		parseArgs(args);
 		Service carService = new Service(srvc_port);
+		Multicast multicast = new Multicast(mcast_addr, mcast_port, carService.getAddress(), srvc_port);
+
 		Thread serviceThread = new Thread(carService);
-		Thread multicastThread = new Thread(new Multicast(mcast_addr, mcast_port, carService.getAddress(), srvc_port));
+		Timer multicastTimer = new Timer();
 		
-		multicastThread.start();
 		serviceThread.start();
+		multicastTimer.schedule(multicast, 0, 1000);
 	}
 
 }
