@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 public class Service implements Runnable {
 
+	// (plate number, owner name)
 	private HashMap<String,String> storedData = new HashMap<String,String>();
 	private int srvc_port;
 	private InetAddress serviceAddress;
@@ -47,24 +48,34 @@ public class Service implements Runnable {
 			serverSocket.send(sendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.exit(2);
 		}
 	}
 	
 	private String parseClientPacket(DatagramPacket receivedPacket) {
 		String receivedStr = new String(receivedPacket.getData()).trim();
 		String[] arguments = receivedStr.split(" ");
-
-		if (arguments[0].equals("register")){
-			storedData.put(arguments[1],arguments[2]);
+		String plateNumber, ownerName;
+		
+		if (arguments[0].equals("register")) {
+			plateNumber = arguments[1];
+			ownerName = arguments[2];
+			storedData.put(plateNumber, ownerName);
+			System.out.println("register " + plateNumber + " " + ownerName + " :: " + Integer.toString(storedData.size()));
 			return Integer.toString(storedData.size());
-		}else if (arguments[0].equals("lookup")){
-			String ownerName = storedData.get(arguments[1]);
-			if (ownerName != null){
-				return arguments[1] + " " + ownerName;
+		} else if (arguments[0].equals("lookup")) {
+			plateNumber = arguments[1];
+			ownerName = storedData.get(plateNumber);
+			
+			if (ownerName != null) {
+				String result = plateNumber + " " + ownerName;
+				System.out.println("lookup " + plateNumber + " :: " + result);
+				return result;
 			}
-			return "plate number is not registered";
-		}else{
+			
+			String result = "plate number is not registered";
+			System.out.println("lookup " + plateNumber + " :: " + result);
+			return result;
+		} else {
 			System.out.println("Invalid operation: " + arguments[0]);
 			return "-1";
 		}

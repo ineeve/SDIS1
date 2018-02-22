@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.net.*;
-import java.util.HashMap;
 import java.util.Timer;
 
 public class CarServer {
