@@ -2,7 +2,6 @@
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.Timer;
 import java.util.TimerTask;
 
 
@@ -25,7 +24,6 @@ public class Multicast extends TimerTask {
 	
 	private void setupConnection() throws IOException {
 		mcast_socket = new MulticastSocket(mcast_port);
-		mcast_socket.joinGroup(mcast_addr);
 		System.out.println("Server in multicast group " + mcast_addr.getHostAddress() + ":" + mcast_port);
 	}
 	
@@ -39,7 +37,7 @@ public class Multicast extends TimerTask {
 	}
 	
 	private byte[] createMessage() {
-		String message = "" + srvc_addr + srvc_port;
+		String message = "" + srvc_addr.getHostAddress() + " " + srvc_port;
 		return message.getBytes();
 	}
 	
