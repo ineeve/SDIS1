@@ -56,6 +56,7 @@ public class CarClient {
 		String[] multicastReply = new String(multicastPacket.getData()).trim().split(" ");
 		srvc_addr = InetAddress.getByName(multicastReply[0]);
 		srvc_port = Integer.parseInt(multicastReply[1]);
+		System.out.println("Found server on " + srvc_addr + ":" + srvc_port);
 		clientSocket = new DatagramSocket();
 	}
 
