@@ -22,6 +22,11 @@ public class Initiator implements Runnable {
 
 	private Scanner terminal = new Scanner(System.in);
 	
+	private InetAddress mdbIP;
+	private int mdbPort;
+	private InetAddress mcIP;
+	private int mcPort;
+	
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private String peerId;
@@ -30,6 +35,10 @@ public class Initiator implements Runnable {
 	
 	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort) {
 		this.peerId = peerId;
+		this.mdbIP = mdbIP;
+		this.mdbPort = mdbPort;
+		this.mcIP = mcIP;
+		this.mcPort = mcPort;
 		try {
 			mcSocket = new MulticastSocket(mcPort);
 			mcSocket.joinGroup(mcIP);
@@ -44,7 +53,7 @@ public class Initiator implements Runnable {
 	private DatagramPacket makeChunkPacket(String fileId, String chunkNo, byte repDeg, String data) {
 		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + CRLF + CRLF;
 		putChunkMsg += data;
-		DatagramPacket packet = new DatagramPacket(putChunkMsg.getBytes(), putChunkMsg.length());
+		DatagramPacket packet = new DatagramPacket(putChunkMsg.getBytes(), putChunkMsg.length(), mdbIP, mdbPort);
 		return packet;
 	}
 	
