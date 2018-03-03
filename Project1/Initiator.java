@@ -12,6 +12,8 @@ import java.util.concurrent.TimeoutException;
 
 public class Initiator implements Runnable {
 
+	private static final byte[] CRLF = {0xD, 0xA};
+	
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private String peerId;
@@ -28,7 +30,7 @@ public class Initiator implements Runnable {
 	
 	// Should CRLF be "DA"?
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, String data) {
-		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " DADA";
+		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + CRLF + CRLF;
 		putChunkMsg += data;
 		DatagramPacket packet = new DatagramPacket(putChunkMsg.getBytes(), putChunkMsg.length());
 		return packet;
