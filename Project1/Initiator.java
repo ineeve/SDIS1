@@ -1,7 +1,13 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -13,6 +19,8 @@ import java.util.concurrent.TimeoutException;
 public class Initiator implements Runnable {
 
 	private static final byte[] CRLF = {0xD, 0xA};
+
+	private Scanner terminal = new Scanner(System.in);
 	
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
@@ -20,30 +28,48 @@ public class Initiator implements Runnable {
 	
 	ExecutorService executor = Executors.newSingleThreadExecutor();
 	
-	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort) throws IOException {
+	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort) {
 		this.peerId = peerId;
-		mcSocket = new MulticastSocket(mcPort);
-		mcSocket.joinGroup(mcIP);
-		mdbSocket = new MulticastSocket(mdbPort);
-		mdbSocket.joinGroup(mdbIP);
+		try {
+			mcSocket = new MulticastSocket(mcPort);
+			mcSocket.joinGroup(mcIP);
+			mdbSocket = new MulticastSocket(mdbPort);
+			mdbSocket.joinGroup(mdbIP);
+		} catch (IOException e) {
+			System.out.println("Failed to start Initiator service.");
+			e.printStackTrace();
+		}
 	}
 	
-	// Should CRLF be "DA"?
-	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, String data) {
+	private DatagramPacket makeChunkPacket(String fileId, String chunkNo, byte repDeg, String data) {
 		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + CRLF + CRLF;
 		putChunkMsg += data;
 		DatagramPacket packet = new DatagramPacket(putChunkMsg.getBytes(), putChunkMsg.length());
 		return packet;
 	}
 	
-	private void storeChunk(String fileId, int chunkNo, byte repDeg, String data) throws IOException, InterruptedException, ExecutionException, TimeoutException {
-		Future<Integer> future;
+	private void storeChunk(String fileId, String chunkNo, byte repDeg, String data) throws IOException {
+		HashSet<String> confirmedPeerIds = new HashSet<String>();
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, repDeg, data);
+        DatagramPacket confirmationPacket = new DatagramPacket(new byte[1024], 1024);
 		int listeningInterval = 1; //seconds
 		for (int i = 1; i <= 5; i++) {
 			mdbSocket.send(chunkPacket);
-			future = executor.submit(new ConfirmationListener(mcSocket));
-			int numConfirmations = future.get(listeningInterval, TimeUnit.SECONDS);
+			int remainingListeningTime = listeningInterval * 1000;
+			int numConfirmations = 0;
+			while (remainingListeningTime > 0) {
+				int msBeforeReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
+				mcSocket.setSoTimeout(remainingListeningTime);
+				mcSocket.receive(confirmationPacket);
+				String confirmedPeerId = getPeerIdFromConfirmation(confirmationPacket, fileId, chunkNo);
+				if (confirmedPeerId != null && !confirmedPeerIds.contains(confirmedPeerId)) {
+					confirmedPeerIds.add(confirmedPeerId);
+					++numConfirmations;
+				}
+				int msAfterReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
+				int passedTime = msAfterReceive - msBeforeReceive;
+				remainingListeningTime -= passedTime;
+			}
 			if (numConfirmations >= repDeg) {
 				// Missing storage of numConfirmations.
 				break;
@@ -52,29 +78,71 @@ public class Initiator implements Runnable {
 		}
 	}
 	
+	private String getPeerIdFromConfirmation(DatagramPacket confirmationPacket, String sentFileId, String sentChunkNo) {
+		String confirmationMsg = new String(confirmationPacket.getData());
+		String[] splittedMsg = confirmationMsg.trim().split("\\s+");
+		String msgType = splittedMsg[0];
+		if (msgType != "STORED") {
+			return null;
+		}
+		String peerId = splittedMsg[2];
+		String fileId = splittedMsg[3];
+		String chunkNo = splittedMsg[4];
+		if (fileId != sentFileId || chunkNo != sentChunkNo) {
+			return null;
+		}
+		
+		return peerId;
+	}
+
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-
+		System.out.println("1. Backup chunk\n");
+		System.out.println("Option: ");
+		while (true) {
+			int option = terminal.nextInt();
+			treatOption(option);
+		}
 	}
 
-}
-
-class ConfirmationListener implements Callable<Integer> {
-	private MulticastSocket mcSocket;
-	
-    public ConfirmationListener(MulticastSocket mcSocket) {
-		this.mcSocket = mcSocket;
+	private void treatOption(int option) {
+		switch (option) {
+		case 1:
+			try {
+				backupChunkMenu();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			break;
+		default:
+			return;
+		}
 	}
 
-	@Override
-    public Integer call() throws Exception {
-        int numConfirmations = 0;
-        DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
-        
-        
-        mcSocket.receive(packet);
-        
-        return numConfirmations;
-    }
+	private void backupChunkMenu() throws IOException {
+		File file;
+		FileInputStream fis = null;
+		boolean fileFound;
+		do {
+			fileFound = true;
+			System.out.println("Chunk filename: ");
+			String filename = terminal.next();
+			file = new File(filename);
+			try {
+				fis = new FileInputStream(file);
+			} catch (FileNotFoundException e) {
+				System.out.println("File '" + filename + "' wasn't found, try again.");
+				fileFound = false;
+			}
+		} while (!fileFound);
+		byte[] data = new byte[(int) file.length()];
+		fis.read(data);
+		fis.close();
+
+		String str = new String(data, "UTF-8");
+		String fileId = "0";//generateFileId();
+		String chunkNo = "0";
+		storeChunk(fileId, chunkNo, (byte) 1, str);
+	}
+
 }

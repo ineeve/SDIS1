@@ -1,4 +1,5 @@
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class Peer {
 	
@@ -28,14 +29,29 @@ public class Peer {
 	}
 	
 	private void parseArgs(String[] args) {
+		if (args.length < 5) {
+			System.out.println("Usage:");
+			System.out.println("java Peer id MC_ip MC_port MDB_ip MDB_port");
+			System.exit(1);
+		}
 		peerId = args[0];
+		try {
+			mcIP = InetAddress.getByName(args[1]);
+			mcPort = Integer.parseInt(args[2]);
+			mdbIP = InetAddress.getByName(args[3]);
+			mdbPort = Integer.parseInt(args[4]);
+		} catch (UnknownHostException e) {
+			System.out.println("Invalid IP argument.");
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 
 	public static void main(String[] args) {
 		//Non initiator peers: java Peer id MC_ip MC_port MDB_ip MDB_port
 		//Initiator peers: java Peer id MC_ip MC_port MDB_ip MDB_port filename replication
 		
-		Peer peer = new Peer(args);		
+		Peer peer = new Peer(args);
 	}
 
 }
