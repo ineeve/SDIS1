@@ -1,7 +1,6 @@
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -9,10 +8,7 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
-import javax.xml.crypto.Data;
 
 public class MDBListener implements Runnable {
 
@@ -98,7 +94,7 @@ public class MDBListener implements Runnable {
 	}
 
 	private DatagramPacket makeStoredPacket(String version, String fileId, int chunkNo){
-		String storedMsg = "STORED " + version + " " + peerId + " " + fileId + " " + chunkNo + CRLF + CRLF;
+		String storedMsg = "STORED " + version + " " + peerId + " " + fileId + " " + chunkNo + " " + CRLF + CRLF;
 		DatagramPacket packet = new DatagramPacket(storedMsg.getBytes(), storedMsg.length(), mcIP, mcPort);
 		return packet;
 	}

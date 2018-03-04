@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -63,10 +67,12 @@ public class Initiator implements Runnable {
 			int numConfirmations = 0;
 			while (remainingListeningTime > 0) {
 				int msBeforeReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
-				mcSocket.setSoTimeout(remainingListeningTime);
+				mcSocket.setSoTimeout(remainingListeningTime); // TIMEOUT is throwing exception
 				mcSocket.receive(confirmationPacket);
+				System.out.println("Received packet on MC");
 				String confirmedPeerId = getPeerIdFromConfirmation(confirmationPacket, fileId, chunkNo);
 				if (confirmedPeerId != null && !confirmedPeerIds.contains(confirmedPeerId)) {
+					System.out.println("Confirmation received");
 					confirmedPeerIds.add(confirmedPeerId);
 					++numConfirmations;
 				}
@@ -81,18 +87,33 @@ public class Initiator implements Runnable {
 			listeningInterval *= 2;
 		}
 	}
+
+	private String encode(String str){
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		byte[] hash = digest.digest(str.getBytes(StandardCharsets.UTF_8));
+		return Base64.getEncoder().encodeToString(hash);
+	}
 	
 	private String getPeerIdFromConfirmation(DatagramPacket confirmationPacket, String sentFileId, String sentChunkNo) {
 		String confirmationMsg = new String(confirmationPacket.getData());
 		String[] splittedMsg = confirmationMsg.trim().split("\\s+");
 		String msgType = splittedMsg[0];
+		System.out.println();
 		if (!msgType.equals("STORED")) {
 			return null;
 		}
+		
 		String peerId = splittedMsg[2];
 		String fileId = splittedMsg[3];
 		String chunkNo = splittedMsg[4];
-		if (fileId != sentFileId || chunkNo != sentChunkNo) {
+		if (!fileId.equals(sentFileId) || !chunkNo.equals(sentChunkNo)) {
+			System.out.println("File S-R:" + sentFileId + "-" + fileId);
+			System.out.println("Chunk S-R:" + sentChunkNo + "-" + chunkNo);
 			return null;
 		}
 		
@@ -142,9 +163,8 @@ public class Initiator implements Runnable {
 		byte[] data = new byte[(int) file.length()];
 		fis.read(data);
 		fis.close();
-
 		String str = new String(data, "UTF-8");
-		String fileId = "0";//generateFileId();
+		String fileId = encode(file.getName());//generateFileId();
 		String chunkNo = "0";
 		storeChunk(fileId, chunkNo, (byte) 1, str);
 	}
