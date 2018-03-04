@@ -31,7 +31,7 @@ public class Peer {
 	private void parseArgs(String[] args) {
 		if (args.length < 5) {
 			System.out.println("Usage:");
-			System.out.println("java Peer id MC_ip MC_port MDB_ip MDB_port");
+			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port");
 			System.exit(1);
 		}
 		peerId = args[0];

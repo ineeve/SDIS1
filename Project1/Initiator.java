@@ -86,7 +86,7 @@ public class Initiator implements Runnable {
 		String confirmationMsg = new String(confirmationPacket.getData());
 		String[] splittedMsg = confirmationMsg.trim().split("\\s+");
 		String msgType = splittedMsg[0];
-		if (msgType != "STORED") {
+		if (!msgType.equals("STORED")) {
 			return null;
 		}
 		String peerId = splittedMsg[2];
