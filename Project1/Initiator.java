@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 
 public class Initiator implements Runnable {
 
-	private static final byte[] CRLF = {0xD, 0xA};
+	private static final String CRLF = "\r\n";
 
 	private Scanner terminal = new Scanner(System.in);
 	
@@ -50,7 +50,7 @@ public class Initiator implements Runnable {
 	}
 	
 	private DatagramPacket makeChunkPacket(String fileId, String chunkNo, byte repDeg, String data) {
-		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + CRLF + CRLF;
+		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
 		putChunkMsg += data;
 		DatagramPacket packet = new DatagramPacket(putChunkMsg.getBytes(), putChunkMsg.length(), mdbIP, mdbPort);
 		return packet;

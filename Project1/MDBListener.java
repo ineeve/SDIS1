@@ -53,8 +53,9 @@ public class MDBListener implements Runnable {
 
 	private void parseReceivedchunk(DatagramPacket putchunkPacket) {
 		String receivedMsg = new String(putchunkPacket.getData());
-		String[] splittedMessage = receivedMsg.trim().split("\\r\\n\\r\\n");
-		String head[] = splittedMessage[0].split("\\s+");;
+		String crlf = new String(CRLF);
+		String[] splittedMessage = receivedMsg.trim().split(crlf + crlf);
+		String head[] = splittedMessage[0].split("\\s+");
 		String body = splittedMessage[1];
 		String version = head[1];
 		String senderId = head[2];
