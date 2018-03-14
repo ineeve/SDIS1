@@ -19,6 +19,8 @@ public class Initiator implements Runnable {
 
 	private static final String CRLF = "\r\n";
 
+	private ExecutorService pool = Executors.newCachedThreadPool();
+	
 	private Scanner terminal = new Scanner(System.in);
 	
 	private InetAddress mdbIP;
@@ -52,50 +54,6 @@ public class Initiator implements Runnable {
 		}
 	}
 	
-	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, String data) {
-		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
-		putChunkMsg += data;
-		DatagramPacket packet = new DatagramPacket(putChunkMsg.getBytes(), putChunkMsg.length(), mdbIP, mdbPort);
-		return packet;
-	}
-	
-	private void storeChunk(String fileId, int chunkNo, byte repDeg, String data) throws IOException {
-		HashSet<String> confirmedPeerIds = new HashSet<String>();
-		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, repDeg, data);
-        DatagramPacket confirmationPacket = new DatagramPacket(new byte[1024], 1024);
-		int listeningInterval = 1; //seconds
-		for (int i = 1; i <= 5; i++) {
-			mdbSocket.send(chunkPacket);
-			try {
-				Thread.sleep(listeningInterval);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				Thread.currentThread().interrupt();
-			}
-			int numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
-//			while (remainingListeningTime > 0) {
-//				int msBeforeReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
-//				mcSocket.setSoTimeout(remainingListeningTime); // TIMEOUT is throwing exception
-//				mcSocket.receive(confirmationPacket);
-//				System.out.println("Received packet on MC");
-//				String confirmedPeerId = getPeerIdFromConfirmation(confirmationPacket, fileId, chunkNo);
-//				if (confirmedPeerId != null && !confirmedPeerIds.contains(confirmedPeerId)) {
-//					System.out.println("Confirmation received");
-//					confirmedPeerIds.add(confirmedPeerId);
-//					++numConfirmations;
-//				}
-//				int msAfterReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
-//				int passedTime = msAfterReceive - msBeforeReceive;
-//				remainingListeningTime -= passedTime;
-//			}
-			if (numConfirmations >= repDeg) {
-				// Missing storage of numConfirmations.
-				break;
-			}
-			listeningInterval *= 2;
-		}
-	}
-
 	private String encode(String str){
 		MessageDigest digest = null;
 		try {
@@ -107,26 +65,7 @@ public class Initiator implements Runnable {
 		return Base64.getEncoder().encodeToString(hash);
 	}
 	
-	private String getPeerIdFromConfirmation(DatagramPacket confirmationPacket, String sentFileId, String sentChunkNo) {
-		String confirmationMsg = new String(confirmationPacket.getData());
-		String[] splittedMsg = confirmationMsg.trim().split("\\s+");
-		String msgType = splittedMsg[0];
-		System.out.println();
-		if (!msgType.equals("STORED")) {
-			return null;
-		}
-		
-		String peerId = splittedMsg[2];
-		String fileId = splittedMsg[3];
-		String chunkNo = splittedMsg[4];
-		if (!fileId.equals(sentFileId) || !chunkNo.equals(sentChunkNo)) {
-			System.out.println("File S-R:" + sentFileId + "-" + fileId);
-			System.out.println("Chunk S-R:" + sentChunkNo + "-" + chunkNo);
-			return null;
-		}
-		
-		return peerId;
-	}
+	
 
 	@Override
 	public void run() {
@@ -172,9 +111,9 @@ public class Initiator implements Runnable {
 		fis.read(data);
 		fis.close();
 		String str = new String(data, "UTF-8");
-		String fileId = encode(file.getName());//generateFileId();
+		String fileId = encode(file.getName()); // Missing metadata
 		int chunkNo = 0;
-		storeChunk(fileId, chunkNo, (byte) 1, str);
+		pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, (byte) 1, str, backupStatus));
 	}
 
 }
