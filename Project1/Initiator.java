@@ -29,15 +29,18 @@ public class Initiator implements Runnable {
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private String peerId;
+
+	// SHARED
+	private final BackupStatus backupStatus;
 	
-	ExecutorService executor = Executors.newSingleThreadExecutor();
 	
-	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort) {
+	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort, BackupStatus backupStatus) {
 		this.peerId = peerId;
 		this.mdbIP = mdbIP;
 		this.mdbPort = mdbPort;
 		this.mcIP = mcIP;
 		this.mcPort = mcPort;
+		this.backupStatus = backupStatus;
 		try {
 			mcSocket = new MulticastSocket(mcPort);
 			mcSocket.joinGroup(mcIP);
@@ -49,37 +52,42 @@ public class Initiator implements Runnable {
 		}
 	}
 	
-	private DatagramPacket makeChunkPacket(String fileId, String chunkNo, byte repDeg, String data) {
+	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, String data) {
 		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
 		putChunkMsg += data;
 		DatagramPacket packet = new DatagramPacket(putChunkMsg.getBytes(), putChunkMsg.length(), mdbIP, mdbPort);
 		return packet;
 	}
 	
-	private void storeChunk(String fileId, String chunkNo, byte repDeg, String data) throws IOException {
+	private void storeChunk(String fileId, int chunkNo, byte repDeg, String data) throws IOException {
 		HashSet<String> confirmedPeerIds = new HashSet<String>();
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, repDeg, data);
         DatagramPacket confirmationPacket = new DatagramPacket(new byte[1024], 1024);
 		int listeningInterval = 1; //seconds
 		for (int i = 1; i <= 5; i++) {
 			mdbSocket.send(chunkPacket);
-			int remainingListeningTime = listeningInterval * 1000;
-			int numConfirmations = 0;
-			while (remainingListeningTime > 0) {
-				int msBeforeReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
-				mcSocket.setSoTimeout(remainingListeningTime); // TIMEOUT is throwing exception
-				mcSocket.receive(confirmationPacket);
-				System.out.println("Received packet on MC");
-				String confirmedPeerId = getPeerIdFromConfirmation(confirmationPacket, fileId, chunkNo);
-				if (confirmedPeerId != null && !confirmedPeerIds.contains(confirmedPeerId)) {
-					System.out.println("Confirmation received");
-					confirmedPeerIds.add(confirmedPeerId);
-					++numConfirmations;
-				}
-				int msAfterReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
-				int passedTime = msAfterReceive - msBeforeReceive;
-				remainingListeningTime -= passedTime;
+			try {
+				Thread.sleep(listeningInterval);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				Thread.currentThread().interrupt();
 			}
+			int numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
+//			while (remainingListeningTime > 0) {
+//				int msBeforeReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
+//				mcSocket.setSoTimeout(remainingListeningTime); // TIMEOUT is throwing exception
+//				mcSocket.receive(confirmationPacket);
+//				System.out.println("Received packet on MC");
+//				String confirmedPeerId = getPeerIdFromConfirmation(confirmationPacket, fileId, chunkNo);
+//				if (confirmedPeerId != null && !confirmedPeerIds.contains(confirmedPeerId)) {
+//					System.out.println("Confirmation received");
+//					confirmedPeerIds.add(confirmedPeerId);
+//					++numConfirmations;
+//				}
+//				int msAfterReceive = Calendar.getInstance().get(Calendar.MILLISECOND);
+//				int passedTime = msAfterReceive - msBeforeReceive;
+//				remainingListeningTime -= passedTime;
+//			}
 			if (numConfirmations >= repDeg) {
 				// Missing storage of numConfirmations.
 				break;
@@ -165,7 +173,7 @@ public class Initiator implements Runnable {
 		fis.close();
 		String str = new String(data, "UTF-8");
 		String fileId = encode(file.getName());//generateFileId();
-		String chunkNo = "0";
+		int chunkNo = 0;
 		storeChunk(fileId, chunkNo, (byte) 1, str);
 	}
 

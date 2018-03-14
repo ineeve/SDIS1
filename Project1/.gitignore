@@ -4,8 +4,6 @@
 /Task.class
 /confirmationListener.class
 /ConfirmationListener.class
-/rmi.class
-/rmiInterface.class
-/RMIEngine.class
 /RMIInterface.class
 /RMIServer.class
+/BackupStatus.class
