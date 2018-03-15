@@ -8,10 +8,14 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public class MDBListener implements Runnable {
 
+	private ExecutorService pool = Executors.newCachedThreadPool();
+	
 	private static final byte[] CRLF = {0xD, 0xA};
 	private HashMap<String,ArrayList<Integer>> chunksStored; //filename to chunks
 	private MulticastSocket mdbSocket;
@@ -42,10 +46,11 @@ public class MDBListener implements Runnable {
 
 	public void receiveChunk(){
 		int datagramMaxSize = (int) Math.pow(2,16);
-		DatagramPacket putchunkPacket = new DatagramPacket(new byte[datagramMaxSize], datagramMaxSize);
+		DatagramPacket putChunkPacket = new DatagramPacket(new byte[datagramMaxSize], datagramMaxSize);
 		try {
-			mdbSocket.receive(putchunkPacket);
-			parseReceivedchunk(putchunkPacket);
+			mdbSocket.receive(putChunkPacket);
+			pool.execute(new PutChunkReceive(putChunkPacket, mcSocket, mcIP, mcPort));
+			parseReceivedchunk(putChunkPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -113,8 +118,9 @@ public class MDBListener implements Runnable {
 
 	@Override
 	public void run() {
-		receiveChunk();
-		
+		while (true) {
+			receiveChunk();
+		}
 	}
 
 }
