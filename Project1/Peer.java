@@ -17,7 +17,7 @@ public class Peer {
 		parseArgs(args);
 		BackupStatus backupStatus = new BackupStatus();
 		initiator = new Initiator(peerId, mcIP, mcPort, mdbIP, mdbPort, backupStatus);
-//		mcListener = new MCListener(peerId, mcIP, mcPort, mdbIP, mdbPort, backupStatus);
+		mcListener = new MCListener(peerId, mcIP, mcPort, backupStatus);
 		mdbListener = new MDBListener(peerId, mcIP, mcPort, mdbIP, mdbPort);
 		
 		Thread initiatorThr = new Thread(initiator);

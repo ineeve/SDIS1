@@ -49,7 +49,7 @@ public class StoreChunk implements Runnable {
 
 	private void storeChunk() throws IOException {
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, replicationDegree, data);
-		int listeningInterval = 1; // seconds
+		int listeningInterval = 1000; // milliseconds
 		boolean success = false;
 		for (int i = 1; i <= 5; i++) {
 			mdbSocket.send(chunkPacket);

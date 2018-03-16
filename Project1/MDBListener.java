@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +18,7 @@ public class MDBListener implements Runnable {
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
 	private static final byte[] CRLF = {0xD, 0xA};
-	private HashMap<String,ArrayList<Integer>> chunksStored; //filename to chunks
+	private ConcurrentHashMap<String,ArrayList<Integer>> chunksStored = new ConcurrentHashMap<String, ArrayList<Integer>>(); //filename to chunks
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private String peerId;
@@ -32,14 +33,13 @@ public class MDBListener implements Runnable {
 		this.mdbPort = mdbPort;
 		this.mcIP = mcIP;
 		this.mcPort = mcPort;
-		chunksStored = new HashMap<String, ArrayList<Integer>>();
 		try {
 			mcSocket = new MulticastSocket(mcPort);
 			mcSocket.joinGroup(mcIP);
 			mdbSocket = new MulticastSocket(mdbPort);
 			mdbSocket.joinGroup(mdbIP);
 		} catch (IOException e) {
-			System.out.println("Failed to start Initiator service.");
+			System.out.println("Failed to start MDBListener service.");
 			e.printStackTrace();
 		}
 	}
@@ -49,68 +49,7 @@ public class MDBListener implements Runnable {
 		DatagramPacket putChunkPacket = new DatagramPacket(new byte[datagramMaxSize], datagramMaxSize);
 		try {
 			mdbSocket.receive(putChunkPacket);
-			pool.execute(new PutChunkReceive(putChunkPacket, mcSocket, mcIP, mcPort));
-			parseReceivedchunk(putChunkPacket);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void parseReceivedchunk(DatagramPacket putchunkPacket) {
-		String receivedMsg = new String(putchunkPacket.getData());
-		String crlf = new String(CRLF);
-		String[] splittedMessage = receivedMsg.trim().split(crlf + crlf);
-		String head[] = splittedMessage[0].split("\\s+");
-		String body = splittedMessage[1];
-		String version = head[1];
-		String senderId = head[2];
-		if (senderId.equals(peerId)) return;
-		if (head[0].equals("PUTCHUNK")){
-			String fileId = head[3];
-			int chunkNo = Integer.parseInt(head[4]);
-			chunksStored.putIfAbsent(fileId, new ArrayList<Integer>());
-			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
-			if(chunksStoredForFile.contains(chunkNo)){
-				System.out.println("chunk already stored");
-			}else{
-				chunksStoredForFile.add(chunkNo);
-			}
-			storeChunk(body,fileId,chunkNo);
-			sendConfirmation(makeStoredPacket(version,fileId,chunkNo));
-		}else{
-			System.out.println("Received " + head[0]);
-		}
-		
-		
-	}
-
-	private void sendConfirmation(DatagramPacket storedPacket) {
-		int timeout = (int)(Math.random() * 400);
-		try {
-			TimeUnit.MILLISECONDS.sleep(timeout);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		try {
-			mcSocket.send(storedPacket);
-			System.out.println("Stored confirmation sent");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private DatagramPacket makeStoredPacket(String version, String fileId, int chunkNo){
-		String storedMsg = "STORED " + version + " " + peerId + " " + fileId + " " + chunkNo + " " + CRLF + CRLF;
-		DatagramPacket packet = new DatagramPacket(storedMsg.getBytes(), storedMsg.length(), mcIP, mcPort);
-		return packet;
-	}
-
-	private void storeChunk(String body, String fileId, int chunkNo) {
-		File chunk = new File("stored/" + fileId + "_" + chunkNo + ".out");
-		try {
-			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
-			out.writeBytes(body);
-			out.close();
+			pool.execute(new PutChunkReceive(putChunkPacket, peerId, chunksStored, mcSocket, mcIP, mcPort));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
