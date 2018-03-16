@@ -1,7 +1,9 @@
 package utils;
 
-public class Pair<L, R> {
+import java.io.Serializable;
 
+public class Pair<L, R> implements Serializable {
+	private static final long serialVersionUID = -7370372854326071958L;
 	private final L left;
 	private final R right;
 
