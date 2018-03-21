@@ -17,15 +17,7 @@ public class BackupStatus implements Serializable {
 	private transient ObjectOutputStream out;
 	
 	public BackupStatus() {
-		try {
-			FileOutputStream fileOut = new FileOutputStream("data/BackupStatus.ser");
-			out = new ObjectOutputStream(fileOut);
-		} catch (IOException e) {
-			System.out.println("WARNING: Failed to open storage of received confirmations. Received confirmations will be disposed.");
-			e.printStackTrace();
-		}
-        
-        System.out.println("Serialized data is saved in data/BackupStatus.ser");
+		setOutputStream();
 	}
 	
 	public int getNumConfirms(String fileId, int chunkNo) {
@@ -47,6 +39,18 @@ public class BackupStatus implements Serializable {
 			System.out.println("Failed to write storage of received confirmations.");
 			e.printStackTrace();
 		}
+	}
+
+	public BackupStatus setOutputStream() {
+		try {
+			FileOutputStream fileOut = new FileOutputStream("data/BackupStatus.ser");
+			out = new ObjectOutputStream(fileOut);
+		} catch (IOException e) {
+			System.out.println("WARNING: Failed to open storage of received confirmations. Received confirmations will be disposed.");
+			e.printStackTrace();
+		}
+        System.out.println("Serialized data is saved in data/BackupStatus.ser");
+		return this;
 	}
 	
 }

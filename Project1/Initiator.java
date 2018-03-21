@@ -77,7 +77,7 @@ public class Initiator implements Runnable {
 		byte[] hash = digest.digest((filename + attr.lastModifiedTime()).getBytes(StandardCharsets.UTF_8));
 		StringBuilder sb = new StringBuilder();
 	    for (byte b : hash) {
-	        sb.append(String.format("%02X ", b));
+	        sb.append(String.format("%02X", b));
 	    }
 	    return sb.toString();
 	}

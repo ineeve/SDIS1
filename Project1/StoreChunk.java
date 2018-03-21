@@ -74,6 +74,7 @@ public class StoreChunk implements Runnable {
 		}
 	}
 
+	// TODO: Use array length instead of string length.
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, String data) {
 		String putChunkMsg = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
 		putChunkMsg += data;

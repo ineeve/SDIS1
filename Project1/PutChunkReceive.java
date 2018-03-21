@@ -50,14 +50,18 @@ public class PutChunkReceive implements Runnable {
 			int chunkNo = Integer.parseInt(head[4]);
 			chunksStored.putIfAbsent(fileId, new ArrayList<Integer>());
 			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
-			if(chunksStoredForFile.contains(chunkNo)){
-				System.out.println("chunk already stored");
-			}else{
-				chunksStoredForFile.add(chunkNo);
+			try {
+				storeChunk(body,fileId,chunkNo);
+				if(chunksStoredForFile.contains(chunkNo)){
+					System.out.println("chunk already stored");
+				}else{
+					chunksStoredForFile.add(chunkNo);
+				}
+				sendConfirmation(makeStoredPacket(version,fileId,chunkNo));
+			} catch (IOException e) {
+				System.out.format("Failed to store chunk %d of file %s.\n", chunkNo, fileId);
 			}
-			storeChunk(body,fileId,chunkNo);
-			sendConfirmation(makeStoredPacket(version,fileId,chunkNo));
-		}else{
+		} else {
 			System.out.println("Received " + head[0]);
 		}
 	}
@@ -83,15 +87,11 @@ public class PutChunkReceive implements Runnable {
 		return packet;
 	}
 	
-	private void storeChunk(String body, String fileId, int chunkNo) {
+	private void storeChunk(String body, String fileId, int chunkNo) throws IOException {
 		File chunk = new File("stored/" + fileId + "_" + chunkNo + ".out");
-		try {
-			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
-			out.writeBytes(body);
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
+		out.writeBytes(body);
+		out.close();
 	}
 	
 }

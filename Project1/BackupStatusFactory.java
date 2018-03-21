@@ -1,5 +1,6 @@
 import java.io.EOFException;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
@@ -10,8 +11,10 @@ public class BackupStatusFactory {
 		try {
 		    FileInputStream streamIn = new FileInputStream("data/BackupStatus.ser");
 		    objectinputstream = new ObjectInputStream(streamIn);
-		    return (BackupStatus) objectinputstream.readObject();
+		    return ((BackupStatus) objectinputstream.readObject()).setOutputStream();
 		} catch (EOFException e) { // file does not contain serialized object to load
+			return new BackupStatus();
+		} catch (FileNotFoundException e) { // no old file found
 			return new BackupStatus();
 		} catch (Exception e) { // unexpected exception
 		    e.printStackTrace();
