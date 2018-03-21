@@ -17,7 +17,6 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.xml.bind.DatatypeConverter;
 
 public class Initiator implements Runnable {
 
@@ -76,7 +75,11 @@ public class Initiator implements Runnable {
 			return null;
 		}
 		byte[] hash = digest.digest((filename + attr.lastModifiedTime()).getBytes(StandardCharsets.UTF_8));
-		return DatatypeConverter.printHexBinary(hash);
+		StringBuilder sb = new StringBuilder();
+	    for (byte b : hash) {
+	        sb.append(String.format("%02X ", b));
+	    }
+	    return sb.toString();
 	}
 	
 	
