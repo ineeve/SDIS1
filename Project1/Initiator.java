@@ -6,6 +6,8 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -14,6 +16,8 @@ import java.util.HashSet;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.xml.bind.DatatypeConverter;
 
 public class Initiator implements Runnable {
 
@@ -54,15 +58,25 @@ public class Initiator implements Runnable {
 		}
 	}
 	
-	private String encode(String str){
+	private String getFileId(File file){
+		String filename = file.getName();
+		BasicFileAttributes attr = null;
+		try {
+			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return null;
+		}
+		
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
+			return null;
 		}
-		byte[] hash = digest.digest(str.getBytes(StandardCharsets.UTF_8));
-		return Base64.getEncoder().encodeToString(hash);
+		byte[] hash = digest.digest((filename + attr.lastModifiedTime()).getBytes(StandardCharsets.UTF_8));
+		return DatatypeConverter.printHexBinary(hash);
 	}
 	
 	
@@ -90,6 +104,7 @@ public class Initiator implements Runnable {
 			return;
 		}
 	}
+	
 
 	private void backupChunkMenu() throws IOException {
 		File file;
@@ -111,7 +126,7 @@ public class Initiator implements Runnable {
 		fis.read(data);
 		fis.close();
 		String str = new String(data, "UTF-8");
-		String fileId = encode(file.getName()); // Missing metadata
+		String fileId = getFileId(file); // Missing metadata
 		int chunkNo = 0;
 		pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, (byte) 1, str, backupStatus));
 	}
