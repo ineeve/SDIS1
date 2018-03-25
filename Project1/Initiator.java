@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -111,6 +113,7 @@ public class Initiator implements Runnable {
 
 	private void backupChunkMenu() throws IOException {
 		File file;
+		Path path = null;
 		FileInputStream fis = null;
 		boolean fileFound;
 		do {
@@ -118,6 +121,7 @@ public class Initiator implements Runnable {
 			System.out.println("Chunk filename: ");
 			String filename = terminal.next();
 			file = new File(filename);
+			path = Paths.get(filename);
 			try {
 				fis = new FileInputStream(file);
 			} catch (FileNotFoundException e) {
@@ -125,13 +129,12 @@ public class Initiator implements Runnable {
 				fileFound = false;
 			}
 		} while (!fileFound);
-		byte[] data = new byte[(int) file.length()];
-		fis.read(data);
+		byte[] data = Files.readAllBytes(path);
+		//fis.read(data);
 		fis.close();
-		String str = new String(data, "UTF-8");
 		String fileId = getFileId(file); // Missing metadata
 		int chunkNo = 0;
-		pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, (byte) 1, str, backupStatus));
+		pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, (byte) 1, data, backupStatus));
 	}
 
 }

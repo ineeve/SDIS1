@@ -5,8 +5,10 @@ import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.stream.Stream;
 
 public class StoreChunk implements Runnable {
 
@@ -20,12 +22,12 @@ public class StoreChunk implements Runnable {
 	private String fileId;
 	private int chunkNo;
 	private byte replicationDegree;
-	private String data;
+	private byte[] data;
 
 	private BackupStatus backupStatus;
 
 	public StoreChunk(MulticastSocket mdbSocket, InetAddress mdbIP, int mdbPort, String peerId, String fileId, int chunkNo, byte replicationDegree,
-			String data, BackupStatus backupStatus) {
+			byte[] data, BackupStatus backupStatus) {
 		this.mdbSocket = mdbSocket;
 		this.mdbIP = mdbIP;
 		this.mdbPort = mdbPort;
@@ -75,10 +77,17 @@ public class StoreChunk implements Runnable {
 	}
 
 	// TODO: Use array length instead of string length.
-	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, String data) {
+	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, byte[] data) {
 		String putChunkMsgStr = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
-		putChunkMsgStr += data;
-		byte[] putChunkMsg = putChunkMsgStr.getBytes();
+		byte[] putChunkMsgHeader = putChunkMsgStr.getBytes();
+		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + data.length];
+		for (int i = 0; i < putChunkMsg.length; i++) {
+			if (i < putChunkMsgHeader.length) {
+				putChunkMsg[i] = putChunkMsgHeader[i];
+			} else {
+				putChunkMsg[i] = data[i - putChunkMsgHeader.length];
+			}
+		}
 		DatagramPacket packet = new DatagramPacket(putChunkMsg, putChunkMsg.length, mdbIP, mdbPort);
 		return packet;
 	}
