@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -79,7 +80,7 @@ public class StoreChunk implements Runnable {
 	// TODO: Use array length instead of string length.
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, byte[] data) {
 		String putChunkMsgStr = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
-		byte[] putChunkMsgHeader = putChunkMsgStr.getBytes();
+		byte[] putChunkMsgHeader = putChunkMsgStr.getBytes(Charset.forName("ISO_8859_1"));
 		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + data.length];
 		for (int i = 0; i < putChunkMsg.length; i++) {
 			if (i < putChunkMsgHeader.length) {

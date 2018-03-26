@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +38,7 @@ public class PutChunkReceive implements Runnable {
 	}
 	
 	private void parseReceivedChunk() {
-		String receivedMsg = new String(putChunkPacket.getData());
+		String receivedMsg = new String(putChunkPacket.getData(), Charset.forName("ISO_8859_1"));
 		String crlf = new String(CRLF);
 		String[] splittedMessage = receivedMsg.trim().split(crlf + crlf);
 		String head[] = splittedMessage[0].split("\\s+");
