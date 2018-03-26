@@ -64,7 +64,6 @@ public class StoreChunk implements Runnable {
 			}
 			int numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
 			if (numConfirmations >= replicationDegree) {
-				// Missing storage of numConfirmations.
 				success = true;
 				break;
 			}
