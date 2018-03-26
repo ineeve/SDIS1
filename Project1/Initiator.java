@@ -134,7 +134,8 @@ public class Initiator implements Runnable {
 		fis.close();
 		String fileId = getFileId(file); // Missing metadata
 		int chunkNo = 0;
-		pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, (byte) 1, data, backupStatus));
+		pool.execute(new StoreFile(mdbSocket, mdbIP, mdbPort, peerId, fileId, (byte) 1, data, backupStatus));
+//		pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, (byte) 1, data, backupStatus));
 	}
 
 }
