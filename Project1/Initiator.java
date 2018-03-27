@@ -51,8 +51,10 @@ public class Initiator implements Runnable {
 		try {
 			mcSocket = new MulticastSocket(mcPort);
 			mcSocket.joinGroup(mcIP);
+			mcSocket.setTimeToLive(3);
 			mdbSocket = new MulticastSocket(mdbPort);
 			mdbSocket.joinGroup(mdbIP);
+			mdbSocket.setTimeToLive(3);
 		} catch (IOException e) {
 			System.out.println("Failed to start Initiator service.");
 			e.printStackTrace();
@@ -110,15 +112,26 @@ public class Initiator implements Runnable {
 		}
 	}
 	
+	private byte readDesiredReplicationDegree(){
+		byte replicationDegree = 0;
+		do {
+			System.out.println("Desired Replication Degree: ");
+			replicationDegree = terminal.nextByte();
+		} while(replicationDegree < 1);
+		return replicationDegree;
+	}
 
 	private void backupChunkMenu() throws IOException {
 		File file;
 		Path path = null;
 		FileInputStream fis = null;
 		boolean fileFound;
+		byte replicationDegree = 0;
+
+		//get filename and make sure it exists
 		do {
 			fileFound = true;
-			System.out.println("Chunk filename: ");
+			System.out.println("Filename: ");
 			String filename = terminal.next();
 			file = new File(filename);
 			path = Paths.get(filename);
@@ -129,12 +142,16 @@ public class Initiator implements Runnable {
 				fileFound = false;
 			}
 		} while (!fileFound);
+
+		//get desired replication degree
+		replicationDegree = readDesiredReplicationDegree();
+
 		byte[] data = Files.readAllBytes(path);
 		//fis.read(data);
 		fis.close();
 		String fileId = getFileId(file); // Missing metadata
 		int chunkNo = 0;
-		pool.execute(new StoreFile(mdbSocket, mdbIP, mdbPort, peerId, fileId, (byte) 1, data, backupStatus));
+		pool.execute(new StoreFile(mdbSocket, mdbIP, mdbPort, peerId, fileId, replicationDegree, data, backupStatus));
 //		pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, (byte) 1, data, backupStatus));
 	}
 

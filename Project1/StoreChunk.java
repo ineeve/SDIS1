@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.stream.Stream;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class StoreChunk implements Runnable {
 
@@ -42,27 +43,38 @@ public class StoreChunk implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			storeChunk();
-		} catch (IOException e) {
-			System.out.println(
-					String.format("Failed to store chunk with file ID %s and chunk number %d.", fileId, chunkNo));
-		}
+		storeChunk();
 	}
 
-	private void storeChunk() throws IOException {
+	private void sleepThread(int time){
+		try {
+				Thread.sleep(time);
+			} catch (InterruptedException e) {
+				System.out.println("Thread Interrupted");
+				Thread.currentThread().interrupt();
+			}
+	}
+
+	private void storeChunk() {
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, replicationDegree, data);
 		int listeningInterval = 1000; // milliseconds
 		boolean success = false;
+		boolean chunkSent = false;
+		int numConfirmations = 0;
 		for (int i = 1; i <= 5; i++) {
-			mdbSocket.send(chunkPacket);
-			try {
-				Thread.sleep(listeningInterval);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				Thread.currentThread().interrupt();
+			while(!chunkSent){
+				try {
+					mdbSocket.send(chunkPacket);
+					chunkSent = true;
+				}catch(IOException e){
+					//buffer is full
+					sleepThread(ThreadLocalRandom.current().nextInt(10, 400));
+				}
 			}
-			int numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
+			
+			sleepThread(listeningInterval);
+			
+			numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
 			if (numConfirmations >= replicationDegree) {
 				success = true;
 				break;
@@ -70,9 +82,9 @@ public class StoreChunk implements Runnable {
 			listeningInterval *= 2;
 		}
 		if (success) {
-			System.out.println(String.format("Stored chunk with file ID %s and chunk number %d.", fileId, chunkNo));
+			System.out.println(String.format("Stored %s_%d; Rep Degree: %d/%d", fileId, chunkNo, numConfirmations, replicationDegree));
 		} else {
-			System.out.println(String.format("Failed to store chunk with file ID %s and chunk number %d.", fileId, chunkNo));
+			System.out.println(String.format("SMALL REP DEGREE: file ID %s and chunk number %d.", fileId, chunkNo));
 		}
 	}
 
