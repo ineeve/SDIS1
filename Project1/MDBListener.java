@@ -19,6 +19,7 @@ public class MDBListener implements Runnable {
 	
 	private static final byte[] CRLF = {0xD, 0xA};
 	private ConcurrentHashMap<String,ArrayList<Integer>> chunksStored = new ConcurrentHashMap<String, ArrayList<Integer>>(); //filename to chunks
+	private ReplicationStatus repStatus;
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private String peerId;
@@ -27,12 +28,13 @@ public class MDBListener implements Runnable {
 	private InetAddress mcIP;
 	private int mcPort;
 
-	public MDBListener(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort) {
+	public MDBListener(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort, ReplicationStatus repStatus) {
 		this.peerId = peerId;
 		this.mdbIP = mdbIP;
 		this.mdbPort = mdbPort;
 		this.mcIP = mcIP;
 		this.mcPort = mcPort;
+		this.repStatus = repStatus;
 		try {
 			mcSocket = new MulticastSocket(mcPort);
 			mcSocket.joinGroup(mcIP);
@@ -49,7 +51,7 @@ public class MDBListener implements Runnable {
 		DatagramPacket putChunkPacket = new DatagramPacket(new byte[datagramMaxSize], datagramMaxSize);
 		try {
 			mdbSocket.receive(putChunkPacket);
-			pool.execute(new PutChunkReceive(putChunkPacket, peerId, chunksStored, mcSocket, mcIP, mcPort));
+			pool.execute(new PutChunkReceive(putChunkPacket, peerId, chunksStored, repStatus, mcSocket, mcIP, mcPort));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

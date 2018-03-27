@@ -38,10 +38,10 @@ public class Initiator implements Runnable {
 	private String peerId;
 
 	// SHARED
-	private final BackupStatus backupStatus;
+	private final ReplicationStatus backupStatus;
 	
 	
-	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort, BackupStatus backupStatus) {
+	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort, ReplicationStatus backupStatus) {
 		this.peerId = peerId;
 		this.mdbIP = mdbIP;
 		this.mdbPort = mdbPort;

@@ -15,10 +15,10 @@ public class Peer {
 	
 	public Peer(String[] args) {
 		parseArgs(args);
-		BackupStatus backupStatus = BackupStatusFactory.getNew();
-		initiator = new Initiator(peerId, mcIP, mcPort, mdbIP, mdbPort, backupStatus);
-		mcListener = new MCListener(peerId, mcIP, mcPort, backupStatus);
-		mdbListener = new MDBListener(peerId, mcIP, mcPort, mdbIP, mdbPort);
+		ReplicationStatus repStatus = ReplicationStatusFactory.getNew();
+		initiator = new Initiator(peerId, mcIP, mcPort, mdbIP, mdbPort, repStatus);
+		mcListener = new MCListener(peerId, mcIP, mcPort, repStatus);
+		mdbListener = new MDBListener(peerId, mcIP, mcPort, mdbIP, mdbPort, repStatus);
 		
 		Thread initiatorThr = new Thread(initiator);
 		Thread mdbListenerThr = new Thread(mcListener);

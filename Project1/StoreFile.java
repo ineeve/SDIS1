@@ -22,10 +22,10 @@ public class StoreFile implements Runnable {
 	private byte replicationDegree;
 	private byte[] fileData;
 
-	private BackupStatus backupStatus;
+	private ReplicationStatus backupStatus;
 	
 	public StoreFile(MulticastSocket mdbSocket, InetAddress mdbIP, int mdbPort, String peerId, String fileId,
-			byte replicationDegree, byte[] data, BackupStatus backupStatus) {
+			byte replicationDegree, byte[] data, ReplicationStatus backupStatus) {
 		this.mdbSocket = mdbSocket;
 		this.mdbIP = mdbIP;
 		this.mdbPort = mdbPort;

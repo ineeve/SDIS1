@@ -12,10 +12,10 @@ public class MCListener implements Runnable {
 	private String peerId;
 	private InetAddress mcIP;
 	private int mcPort;
-	private BackupStatus backupStatus;
+	private ReplicationStatus backupStatus;
 	private MulticastSocket mcSocket;
 
-	public MCListener(String peerId, InetAddress mcIP, int mcPort, BackupStatus backupStatus) {
+	public MCListener(String peerId, InetAddress mcIP, int mcPort, ReplicationStatus backupStatus) {
 		this.peerId = peerId;
 		this.mcIP = mcIP;
 		this.mcPort = mcPort;

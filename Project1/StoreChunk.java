@@ -25,10 +25,10 @@ public class StoreChunk implements Runnable {
 	private byte replicationDegree;
 	private byte[] data;
 
-	private BackupStatus backupStatus;
+	private ReplicationStatus backupStatus;
 
 	public StoreChunk(MulticastSocket mdbSocket, InetAddress mdbIP, int mdbPort, String peerId, String fileId, int chunkNo, byte replicationDegree,
-			byte[] data, BackupStatus backupStatus) {
+			byte[] data, ReplicationStatus backupStatus) {
 		this.mdbSocket = mdbSocket;
 		this.mdbIP = mdbIP;
 		this.mdbPort = mdbPort;

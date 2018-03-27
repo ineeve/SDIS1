@@ -20,13 +20,15 @@ public class PutChunkReceive implements Runnable {
 	private InetAddress mcIP;
 	private int mcPort;
 	private ConcurrentHashMap<String, ArrayList<Integer>> chunksStored;
+	private ReplicationStatus repStatus;
 
 	private String peerId;
 
-	public PutChunkReceive(DatagramPacket putChunkPacket, String peerId, ConcurrentHashMap<String,ArrayList<Integer>> chunksStored, MulticastSocket mcSocket, InetAddress mcIP, int mcPort) {
+	public PutChunkReceive(DatagramPacket putChunkPacket, String peerId, ConcurrentHashMap<String,ArrayList<Integer>> chunksStored, ReplicationStatus repStatus, MulticastSocket mcSocket, InetAddress mcIP, int mcPort) {
 		this.putChunkPacket = putChunkPacket;
 		this.peerId = peerId;
 		this.chunksStored = chunksStored;
+		this.repStatus = repStatus;
 		this.mcSocket = mcSocket;
 		this.mcIP = mcIP;
 		this.mcPort = mcPort;
@@ -49,7 +51,9 @@ public class PutChunkReceive implements Runnable {
 		if (head[0].equals("PUTCHUNK")){
 			String fileId = head[3];
 			int chunkNo = Integer.parseInt(head[4]);
+			int repDeg = Integer.parseInt(head[5]);
 			chunksStored.putIfAbsent(fileId, new ArrayList<Integer>());
+			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
 			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
 			try {
 				storeChunk(body,fileId,chunkNo);

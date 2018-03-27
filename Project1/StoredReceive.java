@@ -8,9 +8,9 @@ public class StoredReceive implements Runnable {
 	private static final String CRLF = "\r\n";
 	
 	private DatagramPacket chunkPacket;
-	private BackupStatus backupStatus;
+	private ReplicationStatus backupStatus;
 
-	public StoredReceive(DatagramPacket chunkPacket, BackupStatus backupStatus) {
+	public StoredReceive(DatagramPacket chunkPacket, ReplicationStatus backupStatus) {
 		this.chunkPacket = chunkPacket;
 		this.backupStatus = backupStatus;
 	}
@@ -24,7 +24,7 @@ public class StoredReceive implements Runnable {
 		String peerId = head[2];
 		String fileId = head[3];
 		Integer chunkNo = Integer.parseInt(head[4]);
-		backupStatus.addPeerId(peerId, fileId, chunkNo);
+		backupStatus.stored_addPeerId(peerId, fileId, chunkNo);
 	}
 
 }
