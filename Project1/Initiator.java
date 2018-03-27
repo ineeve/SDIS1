@@ -51,8 +51,10 @@ public class Initiator implements Runnable {
 		try {
 			mcSocket = new MulticastSocket(mcPort);
 			mcSocket.joinGroup(mcIP);
+			mcSocket.setTimeToLive(3);
 			mdbSocket = new MulticastSocket(mdbPort);
 			mdbSocket.joinGroup(mdbIP);
+			mdbSocket.setTimeToLive(3);
 		} catch (IOException e) {
 			System.out.println("Failed to start Initiator service.");
 			e.printStackTrace();
