@@ -118,7 +118,7 @@ public class Initiator implements Runnable {
 		boolean fileFound;
 		do {
 			fileFound = true;
-			System.out.println("Chunk filename: ");
+			System.out.println("Filename: ");
 			String filename = terminal.next();
 			file = new File(filename);
 			path = Paths.get(filename);
