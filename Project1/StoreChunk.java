@@ -61,6 +61,7 @@ public class StoreChunk implements Runnable {
 		int listeningInterval = 1000; // milliseconds
 		boolean success = false;
 		boolean chunkSent = false;
+		int numConfirmations = 0;
 		for (int i = 1; i <= 5; i++) {
 			while(!chunkSent){
 				try {
@@ -74,7 +75,7 @@ public class StoreChunk implements Runnable {
 			
 			sleepThread(listeningInterval);
 			
-			int numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
+			numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
 			if (numConfirmations >= replicationDegree) {
 				success = true;
 				break;
