@@ -12,12 +12,14 @@ public class Peer {
 	private int mcPort;
 	private InetAddress mdbIP;
 	private int mdbPort;
+	private InetAddress mdrIP;
+	private int mdrPort;
 	
 	public Peer(String[] args) {
 		parseArgs(args);
 		ReplicationStatus repStatus = ReplicationStatusFactory.getNew();
 		initiator = new Initiator(peerId, mcIP, mcPort, mdbIP, mdbPort, repStatus);
-		mcListener = new MCListener(peerId, mcIP, mcPort, repStatus);
+		mcListener = new MCListener(peerId, mcIP, mcPort, mdrIP, mdrPort, repStatus);
 		mdbListener = new MDBListener(peerId, mcIP, mcPort, mdbIP, mdbPort, repStatus);
 		
 		Thread initiatorThr = new Thread(initiator);
@@ -32,7 +34,7 @@ public class Peer {
 	private void parseArgs(String[] args) {
 		if (args.length < 5) {
 			System.out.println("Usage:");
-			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port");
+			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
 			System.exit(1);
 		}
 		peerId = args[0];
@@ -41,6 +43,8 @@ public class Peer {
 			mcPort = Integer.parseInt(args[2]);
 			mdbIP = InetAddress.getByName(args[3]);
 			mdbPort = Integer.parseInt(args[4]);
+			mdrIP = InetAddress.getByName(args[5]);
+			mdrPort = Integer.parseInt(args[6]);
 		} catch (UnknownHostException e) {
 			System.out.println("Invalid IP argument.");
 			e.printStackTrace();
