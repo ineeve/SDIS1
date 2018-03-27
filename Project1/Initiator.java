@@ -38,7 +38,7 @@ public class Initiator implements Runnable {
 	private String peerId;
 
 	// SHARED
-	private final ReplicationStatus backupStatus;
+	private final ReplicationStatus replicationStatus;
 	
 	
 	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort, ReplicationStatus backupStatus) {
@@ -47,7 +47,7 @@ public class Initiator implements Runnable {
 		this.mdbPort = mdbPort;
 		this.mcIP = mcIP;
 		this.mcPort = mcPort;
-		this.backupStatus = backupStatus;
+		this.replicationStatus = backupStatus;
 		try {
 			mcSocket = new MulticastSocket(mcPort);
 			mcSocket.joinGroup(mcIP);
@@ -107,11 +107,19 @@ public class Initiator implements Runnable {
 				e.printStackTrace();
 			}
 			break;
+		case 2:
+			restoreChunkMenu();
 		default:
 			return;
 		}
 	}
 	
+	private void restoreChunkMenu() {
+		System.out.println("File ID: ");
+		String fileId = terminal.next();
+		pool.execute(new SendRestoreFile(mcSocket, mcIP, mcPort, fileId/*, object telling if each chunk has been requested*/));
+	}
+
 	private byte readDesiredReplicationDegree(){
 		byte replicationDegree = 0;
 		do {
@@ -151,7 +159,7 @@ public class Initiator implements Runnable {
 		fis.close();
 		String fileId = getFileId(file); // Missing metadata
 		int chunkNo = 0;
-		pool.execute(new StoreFile(mdbSocket, mdbIP, mdbPort, peerId, fileId, replicationDegree, data, backupStatus));
+		pool.execute(new StoreFile(mdbSocket, mdbIP, mdbPort, peerId, fileId, replicationDegree, data, replicationStatus));
 	}
 
 }
