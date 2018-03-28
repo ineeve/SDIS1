@@ -28,10 +28,11 @@ public class Initiator implements Runnable {
 
 	// SHARED
 	private final ReplicationStatus replicationStatus;
-	private final ChunksRequested chunksRequested = new ChunksRequested();
+	private final ChunksRequested chunksRequested;
 	
 	
 	public Initiator(Config config, ReplicationStatus backupStatus) {
+		this.chunksRequested = new ChunksRequested();
 		this.config = config;
 		this.replicationStatus = backupStatus;
 		try {
@@ -46,32 +47,6 @@ public class Initiator implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
-	private String getFileId(File file){
-		String filename = file.getName();
-		BasicFileAttributes attr = null;
-		try {
-			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			return null;
-		}
-		
-		MessageDigest digest = null;
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return null;
-		}
-		byte[] hash = digest.digest((filename + attr.lastModifiedTime()).getBytes(StandardCharsets.UTF_8));
-		StringBuilder sb = new StringBuilder();
-	    for (byte b : hash) {
-	        sb.append(String.format("%02X", b));
-	    }
-	    return sb.toString();
-	}
-	
 	
 
 	@Override
@@ -116,34 +91,16 @@ public class Initiator implements Runnable {
 	}
 
 	private void backupChunkMenu() throws IOException {
-		File file;
-		Path path = null;
-		FileInputStream fis = null;
-		boolean fileFound;
+		FileProcessor fileProcessor = new FileProcessor();
+		File file = fileProcessor.loadFileFromTerminal();
+		Path path = Paths.get(file.getCanonicalPath());
 		byte replicationDegree = 0;
-
-		//get filename and make sure it exists
-		do {
-			fileFound = true;
-			System.out.println("Filename: ");
-			String filename = terminal.next();
-			file = new File(filename);
-			path = Paths.get(filename);
-			try {
-				fis = new FileInputStream(file);
-			} catch (FileNotFoundException e) {
-				System.out.println("File '" + filename + "' wasn't found, try again.");
-				fileFound = false;
-			}
-		} while (!fileFound);
 
 		//get desired replication degree
 		replicationDegree = readDesiredReplicationDegree();
 
 		byte[] data = Files.readAllBytes(path);
-		//fis.read(data);
-		fis.close();
-		String fileId = getFileId(file); // Missing metadata
+		String fileId = fileProcessor.getFileId(file); // Missing metadata
 		pool.execute(new StoreFile(config, mdbSocket, fileId, replicationDegree, data, replicationStatus));
 	}
 
