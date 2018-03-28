@@ -31,6 +31,7 @@ public class StoreChunk implements Runnable {
 
 	@Override
 	public void run() {
+		repStatus.putchunk_setDesiredReplicationDeg(replicationDegree,fileId,chunkNo);
 		storeChunk();
 	}
 

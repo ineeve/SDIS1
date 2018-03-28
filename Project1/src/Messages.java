@@ -8,11 +8,11 @@ public class Messages {
 	
 	
 	public static boolean isStored(DatagramPacket packet) {
-		return getType(packet) == STORED;
+		return getType(packet).equals(STORED);
 	}
 
 	public static boolean isGetChunk(DatagramPacket packet) {
-		return getType(packet) == GETCHUNK;
+		return getType(packet).equals(GETCHUNK);
 	}
 
 	private static String getType(DatagramPacket packet) {
