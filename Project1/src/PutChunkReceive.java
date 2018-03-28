@@ -43,7 +43,6 @@ public class PutChunkReceive implements Runnable {
 		String version = head[1];
 		String senderId = head[2];
 		if (senderId.equals(config.getPeerId())) return;
-		if (head[0].equals("PUTCHUNK")){
 			String fileId = head[3];
 			int chunkNo = Integer.parseInt(head[4]);
 			int repDeg = Integer.parseInt(head[5]);
@@ -61,9 +60,6 @@ public class PutChunkReceive implements Runnable {
 			} catch (IOException e) {
 				System.out.format("Failed to store chunk %d of file %s.\n", chunkNo, fileId);
 			}
-		} else {
-			System.out.println("Received " + head[0]);
-		}
 	}
 
 	private void sendConfirmation(DatagramPacket storedPacket) {

@@ -35,10 +35,15 @@ public class MDBListener implements Runnable {
 		DatagramPacket putChunkPacket = new DatagramPacket(new byte[datagramMaxSize], datagramMaxSize);
 		try {
 			mdbSocket.receive(putChunkPacket);
-			pool.execute(new PutChunkReceive(config, putChunkPacket, chunksStored, repStatus, mcSocket));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		if (Messages.isPutChunk(putChunkPacket)){
+            pool.execute(new PutChunkReceive(config, putChunkPacket, chunksStored, repStatus, mcSocket));
+        }else{
+            System.out.println("Caught unhandled message in MDBListener");
+        }
+		
 	}
 
 	@Override

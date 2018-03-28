@@ -27,7 +27,8 @@ public class GetChunkReceive implements Runnable {
 		String crlf = new String(CRLF);
 		String[] splittedMessage = msg.trim().split(crlf + crlf);
 		String head[] = splittedMessage[0].split("\\s+");
-		String senderId = head[2]; //sender id is not being used
+		String senderId = head[2];
+		if (senderId.equals(config.getPeerId())) return; //no need to send chunks if I am asking to restore
 		String fileId = head[3];
 		Integer chunkNo = Integer.parseInt(head[4]);
 		

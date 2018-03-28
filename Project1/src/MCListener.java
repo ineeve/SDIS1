@@ -46,6 +46,8 @@ public class MCListener implements Runnable {
 			pool.execute(new StoredReceive(chunkPacket, replicationStatus));
 		} else if (Messages.isGetChunk(chunkPacket)) {
 			pool.execute(new GetChunkReceive(config, mdrSocket, chunkPacket));
+		}else{
+			System.out.println("Caught unhandled message in MCListener");
 		}
 	}
 
