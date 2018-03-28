@@ -16,17 +16,17 @@ public class StoreChunk implements Runnable {
 	private byte replicationDegree;
 	private byte[] data;
 
-	private ReplicationStatus backupStatus;
+	private ReplicationStatus repStatus;
 
 	public StoreChunk(Config config, MulticastSocket mdbSocket, String fileId, int chunkNo, byte replicationDegree,
-			byte[] data, ReplicationStatus backupStatus) {
+			byte[] data, ReplicationStatus repStatus) {
 		this.mdbSocket = mdbSocket;
 		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
 		this.replicationDegree = replicationDegree;
 		this.data = data;
-		this.backupStatus = backupStatus;
+		this.repStatus = repStatus;
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class StoreChunk implements Runnable {
 			
 			sleepThread(listeningInterval);
 			
-			numConfirmations = backupStatus.getNumConfirms(fileId, chunkNo);
+			numConfirmations = repStatus.getNumConfirms(fileId, chunkNo);
 			if (numConfirmations >= replicationDegree) {
 				success = true;
 				break;

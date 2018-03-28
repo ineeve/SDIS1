@@ -11,7 +11,7 @@ public class Peer {
 	
 	public Peer(String[] args) {
 		this.config = parseArgs(args);
-		ReplicationStatus repStatus = ReplicationStatusFactory.getNew();
+		ReplicationStatus repStatus = ReplicationStatusFactory.getNew(config.getPeerId());
 		initiator = new Initiator(config, repStatus);
 		mcListener = new MCListener(config, repStatus);
 		mdbListener = new MDBListener(config, repStatus);

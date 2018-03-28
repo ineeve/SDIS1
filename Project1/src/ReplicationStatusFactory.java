@@ -6,19 +6,20 @@ import java.io.ObjectInputStream;
 
 public class ReplicationStatusFactory {
 
-	public static ReplicationStatus getNew() {
+	public static ReplicationStatus getNew(String peerId) {
+		String path = "data/ReplicationStatus_" + peerId + ".ser";
 		ObjectInputStream objectinputstream = null;
 		try {
-		    FileInputStream streamIn = new FileInputStream("data/ReplicationStatus.ser");
+		    FileInputStream streamIn = new FileInputStream(path);
 		    objectinputstream = new ObjectInputStream(streamIn);
-		    return ((ReplicationStatus) objectinputstream.readObject()).setOutputStream();
+		    return ((ReplicationStatus) objectinputstream.readObject()).setOutputStream(peerId);
 		} catch (EOFException e) { // file does not contain serialized object to load
-			return new ReplicationStatus();
+			return new ReplicationStatus(peerId);
 		} catch (FileNotFoundException e) { // no old file found
-			return new ReplicationStatus();
+			return new ReplicationStatus(peerId);
 		} catch (Exception e) { // unexpected exception
 		    e.printStackTrace();
-		    return new ReplicationStatus();
+		    return new ReplicationStatus(peerId);
 		} finally {
 		    if(objectinputstream != null){
 		        try {

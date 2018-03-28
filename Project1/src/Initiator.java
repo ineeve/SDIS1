@@ -1,15 +1,9 @@
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MulticastSocket;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,7 +45,8 @@ public class Initiator implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("1. Backup chunk\n");
+		System.out.println("1. Backup file");
+		System.out.println("2. Restore file");
 		System.out.println("Option: ");
 		while (true) {
 			int option = terminal.nextInt();
@@ -63,22 +58,22 @@ public class Initiator implements Runnable {
 		switch (option) {
 		case 1:
 			try {
-				backupChunkMenu();
+				backupFileMenu();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			break;
 		case 2:
-			restoreChunkMenu();
+			restoreFileMenu();
 		default:
 			return;
 		}
 	}
 	
-	private void restoreChunkMenu() {
-		System.out.println("File ID: ");
-		String fileId = terminal.next();
-		pool.execute(new SendRestoreFile(config, mcSocket,fileId, chunksRequested));
+	private void restoreFileMenu() {
+		FileProcessor fileProcessor = new FileProcessor();
+		File file = fileProcessor.loadFileFromTerminal();
+		pool.execute(new SendRestoreFile(config, mcSocket,file, chunksRequested));
 	}
 
 	private byte readDesiredReplicationDegree(){
@@ -90,7 +85,7 @@ public class Initiator implements Runnable {
 		return replicationDegree;
 	}
 
-	private void backupChunkMenu() throws IOException {
+	private void backupFileMenu() throws IOException {
 		FileProcessor fileProcessor = new FileProcessor();
 		File file = fileProcessor.loadFileFromTerminal();
 		Path path = Paths.get(file.getCanonicalPath());

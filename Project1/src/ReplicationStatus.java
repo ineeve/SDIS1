@@ -19,12 +19,14 @@ public class ReplicationStatus implements Serializable {
 				= new ConcurrentHashMap<Pair<String, Integer>, Pair<Integer, HashSet<String>>>();
 	private transient ObjectOutputStream out;
 	
-	public ReplicationStatus() {
-		setOutputStream();
+	public ReplicationStatus(String peerId) {
+		setOutputStream(peerId);
 	}
 	
 	public int getNumConfirms(String fileId, int chunkNo) {
-		HashSet<String> peerIds = repDegrees.get(new Pair<String, Integer>(fileId, chunkNo)).getRight();
+		Pair<Integer,HashSet<String>> pair = repDegrees.get(new Pair<String, Integer>(fileId, chunkNo));
+		if (pair == null) return 0;
+		HashSet<String> peerIds = pair.getRight();
 		if (peerIds == null) {
 			return 0;
 		}
@@ -32,6 +34,8 @@ public class ReplicationStatus implements Serializable {
 	}
 
 	public void putchunk_setDesiredReplicationDeg(int repDeg, String fileId, Integer chunkNo) {
+		System.out.println("Seting desired replication degree: ");
+		System.out.println(fileId + "_" + chunkNo);
 		Pair<String, Integer> key = new Pair<String, Integer>(fileId, chunkNo);
 		repDegrees.putIfAbsent(key, new Pair<Integer, HashSet<String>>(repDeg, new HashSet<String>()));
 		Pair<Integer, HashSet<String>> entry = repDegrees.get(key);
@@ -57,15 +61,16 @@ public class ReplicationStatus implements Serializable {
 		}
 	}
 
-	public ReplicationStatus setOutputStream() {
+	public ReplicationStatus setOutputStream(String peerId) {
+		String path = "data/ReplicationStatus_" + peerId + ".ser";
 		try {
-			FileOutputStream fileOut = new FileOutputStream("data/ReplicationStatus.ser");
+			FileOutputStream fileOut = new FileOutputStream(path);
 			out = new ObjectOutputStream(fileOut);
 		} catch (IOException e) {
 			System.out.println("WARNING: Failed to open storage of replication degree data. Received replication degree data will be disposed.");
 			e.printStackTrace();
 		}
-        System.out.println("Serialized data is saved in data/ReplicationStatus.ser");
+        System.out.println("Serialized data is saved in " + path);
 		return this;
 	}
 	

@@ -19,16 +19,16 @@ public class StoreFile implements Runnable {
 	private byte replicationDegree;
 	private byte[] fileData;
 
-	private ReplicationStatus backupStatus;
+	private ReplicationStatus repStatus;
 	
 	public StoreFile(Config config, MulticastSocket mdbSocket, String fileId,
-			byte replicationDegree, byte[] data, ReplicationStatus backupStatus) {
+			byte replicationDegree, byte[] data, ReplicationStatus repStatus) {
 		this.mdbSocket = mdbSocket;
 		this.config = config;
 		this.fileId = fileId;
 		this.replicationDegree = replicationDegree;
 		this.fileData = data;
-		this.backupStatus = backupStatus;
+		this.repStatus = repStatus;
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class StoreFile implements Runnable {
 	private void sendChunks(ArrayList<byte[]> filePortions) {
 		int chunkNo = 0;
 		for (byte[] filePortion : filePortions) {
-			pool.execute(new StoreChunk(config, mdbSocket, fileId, chunkNo, replicationDegree, filePortion, backupStatus));
+			pool.execute(new StoreChunk(config, mdbSocket, fileId, chunkNo, replicationDegree, filePortion, repStatus));
 			chunkNo++;
 		}
 	}
