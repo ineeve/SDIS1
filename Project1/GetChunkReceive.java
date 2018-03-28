@@ -1,8 +1,5 @@
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -16,16 +13,12 @@ public class GetChunkReceive implements Runnable {
 	private DatagramPacket getChunkPacket;
 	private MulticastSocket mdrSocket;
 
-	private String peerId;
-	private InetAddress mdrIP;
-	private int mdrPort;
+	private Config config;
 
-	public GetChunkReceive(MulticastSocket mdrSocket, InetAddress mdrIP, int mdrPort, String peerId, DatagramPacket packet) {
-		this.peerId = peerId;
+	public GetChunkReceive(Config config, MulticastSocket mdrSocket, DatagramPacket packet) {
+		this.config = config;
 		this.getChunkPacket = packet;
 		this.mdrSocket = mdrSocket;
-		this.mdrIP = mdrIP;
-		this.mdrPort = mdrPort;
 	}
 
 	@Override
@@ -34,7 +27,7 @@ public class GetChunkReceive implements Runnable {
 		String crlf = new String(CRLF);
 		String[] splittedMessage = msg.trim().split(crlf + crlf);
 		String head[] = splittedMessage[0].split("\\s+");
-		String senderId = head[2];
+		String senderId = head[2]; //sender id is not being used
 		String fileId = head[3];
 		Integer chunkNo = Integer.parseInt(head[4]);
 		
@@ -61,10 +54,10 @@ public class GetChunkReceive implements Runnable {
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, Integer chunkNo, byte[] data) {
-		String msgStr = String.format("CHUNK 1.0 %s %s %d %s%s", peerId, fileId, chunkNo, CRLF, CRLF);
+		String msgStr = String.format("CHUNK %s %s %s %d %s%s",config.getProtocolVersion(), config.getPeerId(), fileId, chunkNo, CRLF, CRLF);
 		msgStr += new String(data, Charset.forName("ISO_8859_1"));
 		byte[] msg = msgStr.getBytes(Charset.forName("ISO_8859_1"));
-		return new DatagramPacket(msg, msg.length, mdrIP, mdrPort);
+		return new DatagramPacket(msg, msg.length, config.getMdrIP(), config.getMdrPort());
 	}
 
 	private void waitMs(int low, int high) {

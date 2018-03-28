@@ -2,8 +2,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,9 +10,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.HashSet;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,38 +17,29 @@ import java.util.concurrent.Executors;
 
 public class Initiator implements Runnable {
 
-	private static final String CRLF = "\r\n";
-
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
 	private Scanner terminal = new Scanner(System.in);
 	
-	private InetAddress mdbIP;
-	private int mdbPort;
-	private InetAddress mcIP;
-	private int mcPort;
-	
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
-	private String peerId;
+
+	private Config config;
 
 	// SHARED
 	private final ReplicationStatus replicationStatus;
+	private final ChunksRequested chunksRequested = new ChunksRequested();
 	
 	
-	public Initiator(String peerId, InetAddress mcIP, int mcPort, InetAddress mdbIP, int mdbPort, ReplicationStatus backupStatus) {
-		this.peerId = peerId;
-		this.mdbIP = mdbIP;
-		this.mdbPort = mdbPort;
-		this.mcIP = mcIP;
-		this.mcPort = mcPort;
+	public Initiator(Config config, ReplicationStatus backupStatus) {
+		this.config = config;
 		this.replicationStatus = backupStatus;
 		try {
-			mcSocket = new MulticastSocket(mcPort);
-			mcSocket.joinGroup(mcIP);
+			mcSocket = new MulticastSocket(config.getMcPort());
+			mcSocket.joinGroup(config.getMcIP());
 			mcSocket.setTimeToLive(3);
-			mdbSocket = new MulticastSocket(mdbPort);
-			mdbSocket.joinGroup(mdbIP);
+			mdbSocket = new MulticastSocket(config.getMdbPort());
+			mdbSocket.joinGroup(config.getMdbIP());
 			mdbSocket.setTimeToLive(3);
 		} catch (IOException e) {
 			System.out.println("Failed to start Initiator service.");
@@ -117,7 +103,7 @@ public class Initiator implements Runnable {
 	private void restoreChunkMenu() {
 		System.out.println("File ID: ");
 		String fileId = terminal.next();
-		pool.execute(new SendRestoreFile(mcSocket, mcIP, mcPort, fileId/*, object telling if each chunk has been requested*/));
+		pool.execute(new SendRestoreFile(config, mcSocket,fileId, chunksRequested));
 	}
 
 	private byte readDesiredReplicationDegree(){
@@ -158,8 +144,7 @@ public class Initiator implements Runnable {
 		//fis.read(data);
 		fis.close();
 		String fileId = getFileId(file); // Missing metadata
-		int chunkNo = 0;
-		pool.execute(new StoreFile(mdbSocket, mdbIP, mdbPort, peerId, fileId, replicationDegree, data, replicationStatus));
+		pool.execute(new StoreFile(config, mdbSocket, fileId, replicationDegree, data, replicationStatus));
 	}
 
 }

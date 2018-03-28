@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -17,21 +16,17 @@ public class PutChunkReceive implements Runnable {
 	
 	private DatagramPacket putChunkPacket;
 	private MulticastSocket mcSocket;
-	private InetAddress mcIP;
-	private int mcPort;
 	private ConcurrentHashMap<String, ArrayList<Integer>> chunksStored;
 	private ReplicationStatus repStatus;
 
-	private String peerId;
+	private Config config;
 
-	public PutChunkReceive(DatagramPacket putChunkPacket, String peerId, ConcurrentHashMap<String,ArrayList<Integer>> chunksStored, ReplicationStatus repStatus, MulticastSocket mcSocket, InetAddress mcIP, int mcPort) {
+	public PutChunkReceive(Config config, DatagramPacket putChunkPacket, ConcurrentHashMap<String,ArrayList<Integer>> chunksStored, ReplicationStatus repStatus, MulticastSocket mcSocket) {
+		this.config = config;
 		this.putChunkPacket = putChunkPacket;
-		this.peerId = peerId;
 		this.chunksStored = chunksStored;
 		this.repStatus = repStatus;
 		this.mcSocket = mcSocket;
-		this.mcIP = mcIP;
-		this.mcPort = mcPort;
 	}
 
 	@Override
@@ -47,7 +42,7 @@ public class PutChunkReceive implements Runnable {
 		String body = splittedMessage[1];
 		String version = head[1];
 		String senderId = head[2];
-		if (senderId.equals(peerId)) return;
+		if (senderId.equals(config.getPeerId())) return;
 		if (head[0].equals("PUTCHUNK")){
 			String fileId = head[3];
 			int chunkNo = Integer.parseInt(head[4]);
@@ -87,8 +82,8 @@ public class PutChunkReceive implements Runnable {
 	}	
 	
 	private DatagramPacket makeStoredPacket(String version, String fileId, int chunkNo){
-		String storedMsg = "STORED " + version + " " + peerId + " " + fileId + " " + chunkNo + " " + CRLF + CRLF;
-		DatagramPacket packet = new DatagramPacket(storedMsg.getBytes(), storedMsg.length(), mcIP, mcPort);
+		String storedMsg = "STORED " + version + " " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + CRLF + CRLF;
+		DatagramPacket packet = new DatagramPacket(storedMsg.getBytes(), storedMsg.length(), config.getMcIP(), config.getMcPort());
 		return packet;
 	}
 	

@@ -1,15 +1,7 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.stream.Stream;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class StoreChunk implements Runnable {
@@ -17,9 +9,7 @@ public class StoreChunk implements Runnable {
 	private static final String CRLF = "\r\n";
 	
 	private MulticastSocket mdbSocket;
-	private InetAddress mdbIP;
-	private int mdbPort;
-	private String peerId;
+	private Config config;
 
 	private String fileId;
 	private int chunkNo;
@@ -28,12 +18,10 @@ public class StoreChunk implements Runnable {
 
 	private ReplicationStatus backupStatus;
 
-	public StoreChunk(MulticastSocket mdbSocket, InetAddress mdbIP, int mdbPort, String peerId, String fileId, int chunkNo, byte replicationDegree,
+	public StoreChunk(Config config, MulticastSocket mdbSocket, String fileId, int chunkNo, byte replicationDegree,
 			byte[] data, ReplicationStatus backupStatus) {
 		this.mdbSocket = mdbSocket;
-		this.mdbIP = mdbIP;
-		this.mdbPort = mdbPort;
-		this.peerId = peerId;
+		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
 		this.replicationDegree = replicationDegree;
@@ -89,7 +77,7 @@ public class StoreChunk implements Runnable {
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, byte[] data) {
-		String putChunkMsgStr = "PUTCHUNK 1.0 " + peerId + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
+		String putChunkMsgStr = "PUTCHUNK 1.0 " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
 		byte[] putChunkMsgHeader = putChunkMsgStr.getBytes(Charset.forName("ISO_8859_1"));
 		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + data.length];
 		for (int i = 0; i < putChunkMsg.length; i++) {
@@ -99,7 +87,7 @@ public class StoreChunk implements Runnable {
 				putChunkMsg[i] = data[i - putChunkMsgHeader.length];
 			}
 		}
-		DatagramPacket packet = new DatagramPacket(putChunkMsg, putChunkMsg.length, mdbIP, mdbPort);
+		DatagramPacket packet = new DatagramPacket(putChunkMsg, putChunkMsg.length, config.getMdbIP(), config.getMdbPort());
 		return packet;
 	}
 }

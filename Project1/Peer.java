@@ -7,20 +7,14 @@ public class Peer {
 	private MCListener mcListener;
 	private MDBListener mdbListener;
 	
-	private String peerId;
-	private InetAddress mcIP;
-	private int mcPort;
-	private InetAddress mdbIP;
-	private int mdbPort;
-	private InetAddress mdrIP;
-	private int mdrPort;
+	private Config config;
 	
 	public Peer(String[] args) {
-		parseArgs(args);
+		this.config = parseArgs(args);
 		ReplicationStatus repStatus = ReplicationStatusFactory.getNew();
-		initiator = new Initiator(peerId, mcIP, mcPort, mdbIP, mdbPort, repStatus);
-		mcListener = new MCListener(peerId, mcIP, mcPort, mdrIP, mdrPort, repStatus);
-		mdbListener = new MDBListener(peerId, mcIP, mcPort, mdbIP, mdbPort, repStatus);
+		initiator = new Initiator(config, repStatus);
+		mcListener = new MCListener(config, repStatus);
+		mdbListener = new MDBListener(config, repStatus);
 		
 		Thread initiatorThr = new Thread(initiator);
 		Thread mdbListenerThr = new Thread(mcListener);
@@ -31,32 +25,32 @@ public class Peer {
 		initiatorThr.start();
 	}
 	
-	private void parseArgs(String[] args) {
+	private Config parseArgs(String[] args) {
 		if (args.length < 5) {
 			System.out.println("Usage:");
 			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
 			System.exit(1);
 		}
-		peerId = args[0];
+		Config config = new Config(args[0],"1.0");
 		try {
-			mcIP = InetAddress.getByName(args[1]);
-			mcPort = Integer.parseInt(args[2]);
-			mdbIP = InetAddress.getByName(args[3]);
-			mdbPort = Integer.parseInt(args[4]);
-			mdrIP = InetAddress.getByName(args[5]);
-			mdrPort = Integer.parseInt(args[6]);
+			config.setMcIP(InetAddress.getByName(args[1]));
+			config.setMcPort(Integer.parseInt(args[2]));
+			config.setMdbIP(InetAddress.getByName(args[3]));
+			config.setMdbPort(Integer.parseInt(args[4]));
+			config.setMdrIP(InetAddress.getByName(args[5]));
+			config.setMdrPort(Integer.parseInt(args[6]));
 		} catch (UnknownHostException e) {
 			System.out.println("Invalid IP argument.");
 			e.printStackTrace();
 			System.exit(1);
 		}
+		return config;
 	}
 
 	public static void main(String[] args) {
 		//Non initiator peers: java Peer id MC_ip MC_port MDB_ip MDB_port
 		//Initiator peers: java Peer id MC_ip MC_port MDB_ip MDB_port filename replication
-		
-		Peer peer = new Peer(args);
+		new Peer(args);
 	}
 
 }

@@ -1,4 +1,3 @@
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
@@ -14,9 +13,7 @@ public class StoreFile implements Runnable {
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
 	private MulticastSocket mdbSocket;
-	private InetAddress mdbIP;
-	private int mdbPort;
-	private String peerId;
+	private Config config;
 
 	private String fileId;
 	private byte replicationDegree;
@@ -24,12 +21,10 @@ public class StoreFile implements Runnable {
 
 	private ReplicationStatus backupStatus;
 	
-	public StoreFile(MulticastSocket mdbSocket, InetAddress mdbIP, int mdbPort, String peerId, String fileId,
+	public StoreFile(Config config, MulticastSocket mdbSocket, String fileId,
 			byte replicationDegree, byte[] data, ReplicationStatus backupStatus) {
 		this.mdbSocket = mdbSocket;
-		this.mdbIP = mdbIP;
-		this.mdbPort = mdbPort;
-		this.peerId = peerId;
+		this.config = config;
 		this.fileId = fileId;
 		this.replicationDegree = replicationDegree;
 		this.fileData = data;
@@ -65,7 +60,7 @@ public class StoreFile implements Runnable {
 	private void sendChunks(ArrayList<byte[]> filePortions) {
 		int chunkNo = 0;
 		for (byte[] filePortion : filePortions) {
-			pool.execute(new StoreChunk(mdbSocket, mdbIP, mdbPort, peerId, fileId, chunkNo, replicationDegree, filePortion, backupStatus));
+			pool.execute(new StoreChunk(config, mdbSocket, fileId, chunkNo, replicationDegree, filePortion, backupStatus));
 			chunkNo++;
 		}
 	}

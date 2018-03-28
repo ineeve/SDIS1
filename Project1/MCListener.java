@@ -1,6 +1,5 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,27 +8,19 @@ public class MCListener implements Runnable {
 
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
-	private String peerId;
-	private InetAddress mcIP;
-	private int mcPort;
-	private InetAddress mdrIP;
-	private int mdrPort;
+	private Config config;
 	private ReplicationStatus replicationStatus;
 	private MulticastSocket mcSocket;
 	private MulticastSocket mdrSocket;
 
-	public MCListener(String peerId, InetAddress mcIP, int mcPort, InetAddress mdrIP, int mdrPort, ReplicationStatus replicationStatus) {
-		this.peerId = peerId;
-		this.mcIP = mcIP;
-		this.mcPort = mcPort;
-		this.mdrIP = mdrIP;
-		this.mdrPort = mdrPort;
+	public MCListener(Config config, ReplicationStatus replicationStatus) {
+		this.config = config;
 		this.replicationStatus = replicationStatus;
 		try {
-			mcSocket = new MulticastSocket(mcPort);
-			mcSocket.joinGroup(mcIP);
-			mdrSocket = new MulticastSocket(mdrPort);
-			mdrSocket.joinGroup(mdrIP);
+			mcSocket = new MulticastSocket(config.getMcPort());
+			mcSocket.joinGroup(config.getMcIP());
+			mdrSocket = new MulticastSocket(config.getMdrPort());
+			mdrSocket.joinGroup(config.getMdrIP());
 		} catch (IOException e) {
 			System.out.println("Failed to start MCListener service.");
 			e.printStackTrace();
@@ -54,7 +45,7 @@ public class MCListener implements Runnable {
 		if (Messages.isStored(chunkPacket)) {
 			pool.execute(new StoredReceive(chunkPacket, replicationStatus));
 		} else if (Messages.isGetChunk(chunkPacket)) {
-			pool.execute(new GetChunkReceive(mdrSocket, mdrIP, mdrPort, peerId, chunkPacket));
+			pool.execute(new GetChunkReceive(config, mdrSocket, chunkPacket));
 		}
 	}
 
