@@ -6,6 +6,7 @@ public class Peer {
 	private Initiator initiator;
 	private MCListener mcListener;
 	private MDBListener mdbListener;
+	private MDRListener mdrListener;
 	
 	private Config config;
 	
@@ -15,13 +16,16 @@ public class Peer {
 		initiator = new Initiator(config, repStatus);
 		mcListener = new MCListener(config, repStatus);
 		mdbListener = new MDBListener(config, repStatus);
+		mdrListener = new MDRListener(config);
 		
 		Thread initiatorThr = new Thread(initiator);
 		Thread mdbListenerThr = new Thread(mcListener);
 		Thread mcListenerThr = new Thread(mdbListener);
+		Thread mdrListenerThr = new Thread(mdrListener);
 		
 		mdbListenerThr.start();
 		mcListenerThr.start();
+		mdrListenerThr.start();
 		initiatorThr.start();
 	}
 	

@@ -47,7 +47,7 @@ public class Initiator implements Runnable {
 	public void run() {
 		System.out.println("1. Backup file");
 		System.out.println("2. Restore file");
-		System.out.println("Option: ");
+		System.out.print("\nOption: ");
 		while (true) {
 			int option = terminal.nextInt();
 			treatOption(option);

@@ -32,7 +32,7 @@ public class GetChunkReceive implements Runnable {
 		String fileId = head[3];
 		Integer chunkNo = Integer.parseInt(head[4]);
 		
-		String chunkFilename = String.format("data/%s_%d.out", fileId, chunkNo);
+		String chunkFilename = String.format("stored/%s_%d.out", fileId, chunkNo);
 		Path path = Paths.get(chunkFilename);
 		byte[] data;
 		try {
@@ -46,6 +46,7 @@ public class GetChunkReceive implements Runnable {
 	}
 
 	private void sendChunk(String fileId, Integer chunkNo, byte[] data) {
+		System.out.println("Sending CHUNK");
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, data);
 		try {
 			mdrSocket.send(chunkPacket);

@@ -24,4 +24,13 @@ public class FilesRestored {
         fileChunks.addAll(hashmap.values());
         return fileChunks;
     }
+    public boolean haveAll(String fileId, int lastChunk){
+        ConcurrentHashMap<Integer,byte[]> chunks = filesRestored.get(fileId);
+        for (int i = 0; i <= lastChunk; i++){
+            if (!chunks.containsKey(i)){
+                return false;
+            }
+        }
+        return true;
+    }
 }
