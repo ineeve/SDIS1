@@ -10,7 +10,7 @@ public class MDBListener implements Runnable {
 
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
-	private ConcurrentHashMap<String,ArrayList<Integer>> chunksStored = new ConcurrentHashMap<String, ArrayList<Integer>>(); //filename to chunks
+	private ConcurrentHashMap<String,ArrayList<Integer>> chunksStored; //filename to chunks
 	private ReplicationStatus repStatus;
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
@@ -19,6 +19,7 @@ public class MDBListener implements Runnable {
 	public MDBListener(Config config, ReplicationStatus repStatus) {
 		this.config = config;
 		this.repStatus = repStatus;
+		chunksStored = new ConcurrentHashMap<>();
 		try {
 			mcSocket = new MulticastSocket(config.getMcPort());
 			mcSocket.joinGroup(config.getMcIP());
@@ -28,6 +29,7 @@ public class MDBListener implements Runnable {
 			System.out.println("Failed to start MDBListener service.");
 			e.printStackTrace();
 		}
+
 	}
 
 	public void receiveChunk(){

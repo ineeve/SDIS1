@@ -14,6 +14,7 @@ public class FilesRestored {
         receivedLastChunk = new ConcurrentHashMap<>();
     }
     public void addChunk(String fileId, int chunkNo, byte[] data){
+        System.out.println("FilesRestored: Restored chunk " + chunkNo);
         filesRestored.putIfAbsent(fileId, new ConcurrentHashMap<>());
         receivedLastChunk.putIfAbsent(fileId, false);
         filesRestored.get(fileId).putIfAbsent(chunkNo, data);

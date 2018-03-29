@@ -43,7 +43,7 @@ public class GetChunkReceive implements Runnable {
 			System.out.format("Error reading %s.\n", chunkFilename);
 			return;
 		}
-        ThreadUtils.waitBetween(10,400);
+        ThreadUtils.waitBetween(0,400);
 		sendChunk(fileId, chunkNo, data);
 	}
 
@@ -54,9 +54,10 @@ public class GetChunkReceive implements Runnable {
 			try {
 				mdrSocket.send(chunkPacket);
 				wasSent = true;
+                System.out.println("GetChunkReceive: Sent Chunk " + chunkNo);
 			} catch (IOException e) {
-				System.out.println("Full buffer");
-                ThreadUtils.waitBetween(10,100);
+				System.out.println("GetChunkReceive: Full buffer on chunk " + chunkNo);
+                ThreadUtils.waitBetween(0,400);
 			}
 		}while(!wasSent);
 

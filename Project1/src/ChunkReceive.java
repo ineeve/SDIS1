@@ -47,7 +47,7 @@ public class ChunkReceive implements Runnable{
         return true;
     }
     private boolean receivedLastChunk(){
-        System.out.println("Chunk length " + chunkPacket.getLength());
+        System.out.println("ChunkReceive: Chunk length " + chunkPacket.getLength());
         if (chunkPacket.getLength() < Config.MAX_CHUNK_SIZE){
             filesRestored.setReceivedLastChunk(fileId);
             return true;

@@ -46,7 +46,7 @@ public class PutChunkReceive implements Runnable {
 			String fileId = head[3];
 			int chunkNo = Integer.parseInt(head[4]);
 			int repDeg = Integer.parseInt(head[5]);
-			chunksStored.putIfAbsent(fileId, new ArrayList<Integer>());
+			chunksStored.putIfAbsent(fileId, new ArrayList<>());
 			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
 			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
 			try {
@@ -56,13 +56,13 @@ public class PutChunkReceive implements Runnable {
 				}else{
 					chunksStoredForFile.add(chunkNo);
 				}
-				sendConfirmation(makeStoredPacket(version,fileId,chunkNo));
+				sendConfirmation(makeStoredPacket(version,fileId,chunkNo), chunkNo);
 			} catch (IOException e) {
 				System.out.format("Failed to store chunk %d of file %s.\n", chunkNo, fileId);
 			}
 	}
 
-	private void sendConfirmation(DatagramPacket storedPacket) {
+	private void sendConfirmation(DatagramPacket storedPacket, int chunkNo) {
 		int timeout = (int)(Math.random() * 400);
 		try {
 			TimeUnit.MILLISECONDS.sleep(timeout);
@@ -71,7 +71,7 @@ public class PutChunkReceive implements Runnable {
 		}
 		try {
 			mcSocket.send(storedPacket);
-			System.out.println("Stored confirmation sent");
+			System.out.println("PutChunkReceive: Stored confirmation sent: " + chunkNo);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

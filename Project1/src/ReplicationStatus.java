@@ -35,8 +35,9 @@ public class ReplicationStatus implements Serializable {
 	}
 
 	public void putchunk_setDesiredReplicationDeg(int repDeg, String fileId, Integer chunkNo) {
-		Pair<String, Integer> key = new Pair<String, Integer>(fileId, chunkNo);
-		repDegrees.putIfAbsent(key, new Pair<Integer, HashSet<String>>(repDeg, new HashSet<String>()));
+	    System.out.println("ReplicationStatus: Saving desired replication degree for " + chunkNo);
+		Pair<String, Integer> key = new Pair<>(fileId, chunkNo);
+		repDegrees.putIfAbsent(key, new Pair<>(repDeg, new HashSet<>()));
 		Pair<Integer, HashSet<String>> entry = repDegrees.get(key);
 		entry.setLeft(repDeg);
 		tryToWrite();
@@ -44,8 +45,8 @@ public class ReplicationStatus implements Serializable {
 	}
 	
 	public void stored_addPeerId(String peerId, String fileId, Integer chunkNo) {
-		Pair<String, Integer> key = new Pair<String, Integer>(fileId, chunkNo);
-		repDegrees.putIfAbsent(key, new Pair<Integer, HashSet<String>>(0, new HashSet<String>()));
+		Pair<String, Integer> key = new Pair<>(fileId, chunkNo);
+		repDegrees.putIfAbsent(key, new Pair<>(0, new HashSet<>()));
 		HashSet<String> peerIds = repDegrees.get(key).getRight();
 		peerIds.add(peerId);
 		tryToWrite();

@@ -10,7 +10,7 @@ public class StoreFile implements Runnable {
 	 */
 	private final static int FILE_PORTION_SIZE = 64000;
 	
-	private ExecutorService pool = Executors.newCachedThreadPool();
+	private ExecutorService pool;
 	
 	private MulticastSocket mdbSocket;
 	private Config config;
@@ -29,7 +29,8 @@ public class StoreFile implements Runnable {
 		this.replicationDegree = replicationDegree;
 		this.fileData = data;
 		this.repStatus = repStatus;
-	}
+        pool = Executors.newCachedThreadPool();
+    }
 
 	@Override
 	public void run() {

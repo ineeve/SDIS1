@@ -32,25 +32,25 @@ public class StoreChunk implements Runnable {
 
 	@Override
 	public void run() {
-		repStatus.putchunk_setDesiredReplicationDeg(replicationDegree,fileId,chunkNo);
 		storeChunk();
+        repStatus.putchunk_setDesiredReplicationDeg(replicationDegree,fileId,chunkNo);
 	}
 
 	private void storeChunk() {
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, replicationDegree, data);
 		int listeningInterval = 1000; // milliseconds
-		boolean success = false;
-		boolean chunkSent = false;
+
 		int numConfirmations = 0;
 		for (int i = 1; i <= 5; i++) {
+            boolean chunkSent = false;
 			while(!chunkSent){
 				try {
-					System.out.println(String.format("Sending PUTCHUNK %d", chunkNo));
+					System.out.println(String.format("StoreChunk: Sending PUTCHUNK %d", chunkNo));
 					mdbSocket.send(chunkPacket);
 					chunkSent = true;
 				}catch(IOException e){
 					//buffer is full
-					ThreadUtils.waitBetween(10,400);
+					ThreadUtils.waitBetween(100,1000);
 				}
 			}
 			
@@ -58,16 +58,12 @@ public class StoreChunk implements Runnable {
 			
 			numConfirmations = repStatus.getNumConfirms(fileId, chunkNo);
 			if (numConfirmations >= replicationDegree) {
-				success = true;
 				break;
 			}
+			System.out.println("StoreChunk: Waiting confirmation for chunk " + chunkNo);
 			listeningInterval *= 2;
 		}
-		if (success) {
-			System.out.println(String.format("Stored %s_%d; Rep Degree: %d/%d", fileId, chunkNo, numConfirmations, replicationDegree));
-		} else {
-			System.out.println(String.format("SMALL REP DEGREE: file ID %s and chunk number %d.", fileId, chunkNo));
-		}
+		System.out.println(String.format("Stored %s_%d; Rep Degree: %d/%d", fileId, chunkNo, numConfirmations, replicationDegree));
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, byte[] data) {
