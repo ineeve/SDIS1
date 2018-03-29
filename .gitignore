@@ -1,3 +1,6 @@
 *.class
-data/*
-stored/*
+Project1/data/*
+Project1/stored/*
+Project1/restored/*
+.idea/*
+Project1/Project1.iml
