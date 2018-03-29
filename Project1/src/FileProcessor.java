@@ -29,7 +29,7 @@ public class FileProcessor{
 
 		//get filename and make sure it exists
 		do {
-			System.out.println("Filepath: ");
+			System.out.print("\nFilepath: ");
 			String filepath = terminal.next();
 			file = new File(filepath);
 			file = loadFile(filepath);

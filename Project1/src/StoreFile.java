@@ -58,6 +58,7 @@ public class StoreFile implements Runnable {
 	}
 
 	private void sendChunks(ArrayList<byte[]> filePortions) {
+	    System.out.println("Sending file to store: " + fileId);
 		int chunkNo = 0;
 		for (byte[] filePortion : filePortions) {
 			pool.execute(new StoreChunk(config, mdbSocket, fileId, chunkNo, replicationDegree, filePortion, repStatus));

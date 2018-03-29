@@ -1,8 +1,9 @@
+import utils.ThreadUtils;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class StoreChunk implements Runnable {
 
@@ -35,15 +36,6 @@ public class StoreChunk implements Runnable {
 		storeChunk();
 	}
 
-	private void sleepThread(int time){
-		try {
-				Thread.sleep(time);
-			} catch (InterruptedException e) {
-				System.out.println("Thread Interrupted");
-				Thread.currentThread().interrupt();
-			}
-	}
-
 	private void storeChunk() {
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, replicationDegree, data);
 		int listeningInterval = 1000; // milliseconds
@@ -53,15 +45,16 @@ public class StoreChunk implements Runnable {
 		for (int i = 1; i <= 5; i++) {
 			while(!chunkSent){
 				try {
+					System.out.println(String.format("Sending PUTCHUNK %d", chunkNo));
 					mdbSocket.send(chunkPacket);
 					chunkSent = true;
 				}catch(IOException e){
 					//buffer is full
-					sleepThread(ThreadLocalRandom.current().nextInt(10, 400));
+					ThreadUtils.waitBetween(10,400);
 				}
 			}
 			
-			sleepThread(listeningInterval);
+			ThreadUtils.waitFixed(listeningInterval);
 			
 			numConfirmations = repStatus.getNumConfirms(fileId, chunkNo);
 			if (numConfirmations >= replicationDegree) {

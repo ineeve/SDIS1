@@ -1,3 +1,4 @@
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -12,7 +13,8 @@ public class Peer {
 	
 	public Peer(String[] args) {
 		this.config = parseArgs(args);
-		ReplicationStatus repStatus = ReplicationStatusFactory.getNew(config.getPeerId());
+		createFolders();
+		ReplicationStatus repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
 		initiator = new Initiator(config, repStatus);
 		mcListener = new MCListener(config, repStatus);
 		mdbListener = new MDBListener(config, repStatus);
@@ -27,6 +29,12 @@ public class Peer {
 		mcListenerThr.start();
 		mdrListenerThr.start();
 		initiatorThr.start();
+	}
+
+	private void createFolders(){
+		new File( config.getPeerDir() + "data/").mkdirs();
+		new File(config.getPeerDir() + "restored/").mkdirs();
+		new File(config.getPeerDir() + "stored/").mkdirs();
 	}
 	
 	private Config parseArgs(String[] args) {

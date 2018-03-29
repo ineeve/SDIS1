@@ -37,9 +37,9 @@ public class PutChunkReceive implements Runnable {
 	private void parseReceivedChunk() {
 		String receivedMsg = new String(putChunkPacket.getData(), Charset.forName("ISO_8859_1"));
 		String crlf = new String(CRLF);
-		String[] splittedMessage = receivedMsg.trim().split(crlf + crlf);
-		String head[] = splittedMessage[0].split("\\s+");
-		String body = splittedMessage[1];
+		String[] splitMessage = receivedMsg.trim().split(crlf + crlf);
+		String head[] = splitMessage[0].split("\\s+");
+		String body = splitMessage[1];
 		String version = head[1];
 		String senderId = head[2];
 		if (senderId.equals(config.getPeerId())) return;
@@ -84,7 +84,9 @@ public class PutChunkReceive implements Runnable {
 	}
 	
 	private void storeChunk(String body, String fileId, int chunkNo) throws IOException {
-		File chunk = new File("stored/" + fileId + "_" + chunkNo + ".out");
+		String dir = config.getPeerDir() + "stored/" + fileId + "/";
+		new File(dir).mkdirs();
+		File chunk = new File(dir + chunkNo + ".out");
 		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
 		out.writeBytes(body);
 		out.close();

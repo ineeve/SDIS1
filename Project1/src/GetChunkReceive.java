@@ -1,3 +1,5 @@
+import utils.ThreadUtils;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
@@ -25,14 +27,14 @@ public class GetChunkReceive implements Runnable {
 	public void run() {
 		String msg = new String(getChunkPacket.getData(), Charset.forName("ISO_8859_1")).trim();
 		String crlf = new String(CRLF);
-		String[] splittedMessage = msg.trim().split(crlf + crlf);
-		String head[] = splittedMessage[0].split("\\s+");
+		String[] splitMessage = msg.trim().split(crlf + crlf);
+		String head[] = splitMessage[0].split("\\s+");
 		String senderId = head[2];
 		if (senderId.equals(config.getPeerId())) return; //no need to send chunks if I am asking to restore
 		String fileId = head[3];
 		Integer chunkNo = Integer.parseInt(head[4]);
 		
-		String chunkFilename = String.format("stored/%s_%d.out", fileId, chunkNo);
+		String chunkFilename = String.format("%sstored/%s/%d.out", config.getPeerDir(), fileId, chunkNo);
 		Path path = Paths.get(chunkFilename);
 		byte[] data;
 		try {
@@ -41,18 +43,23 @@ public class GetChunkReceive implements Runnable {
 			System.out.format("Error reading %s.\n", chunkFilename);
 			return;
 		}
-		waitMs(0, 400);
+        ThreadUtils.waitBetween(10,400);
 		sendChunk(fileId, chunkNo, data);
 	}
 
 	private void sendChunk(String fileId, Integer chunkNo, byte[] data) {
-		System.out.println("Sending CHUNK");
+		boolean wasSent = false;
 		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, data);
-		try {
-			mdrSocket.send(chunkPacket);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		do{
+			try {
+				mdrSocket.send(chunkPacket);
+				wasSent = true;
+			} catch (IOException e) {
+				System.out.println("Full buffer");
+                ThreadUtils.waitBetween(10,100);
+			}
+		}while(!wasSent);
+
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, Integer chunkNo, byte[] data) {
@@ -62,14 +69,6 @@ public class GetChunkReceive implements Runnable {
 		return new DatagramPacket(msg, msg.length, config.getMdrIP(), config.getMdrPort());
 	}
 
-	private void waitMs(int low, int high) {
-		int value = (int) (Math.random() * (high - low) + low);
-		try {
-			Thread.sleep(value);
-		} catch (InterruptedException e) {
-			System.out.println("Thread Interrupted");
-			Thread.currentThread().interrupt();
-		}
-	}
+
 
 }

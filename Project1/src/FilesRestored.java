@@ -6,13 +6,26 @@ public class FilesRestored {
      // <fileId, <chunkNo, chunk data>>
      private ConcurrentHashMap<String,ConcurrentHashMap<Integer,byte[]>> filesRestored;
 
+     // <fileId, wasLastChunkReceived>
+     private ConcurrentHashMap<String, Boolean> receivedLastChunk;
+
     public FilesRestored(){
-        filesRestored = new ConcurrentHashMap<String,ConcurrentHashMap<Integer,byte[]>>();
+        filesRestored = new ConcurrentHashMap<>();
+        receivedLastChunk = new ConcurrentHashMap<>();
     }
     public void addChunk(String fileId, int chunkNo, byte[] data){
-        filesRestored.putIfAbsent(fileId, new ConcurrentHashMap<Integer,byte[]>());
+        filesRestored.putIfAbsent(fileId, new ConcurrentHashMap<>());
+        receivedLastChunk.putIfAbsent(fileId, false);
         filesRestored.get(fileId).putIfAbsent(chunkNo, data);
     }
+
+    public void setReceivedLastChunk(String fileId){
+        receivedLastChunk.put(fileId, true);
+    }
+    public boolean wasLastChunkReceived(String fileId){
+        return receivedLastChunk.get(fileId);
+    }
+
     public boolean containsChunk(String fileId, int chunkNo){
         ConcurrentHashMap<Integer,byte[]> chunks = filesRestored.get(fileId);
         if (chunks == null) return false;

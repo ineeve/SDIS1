@@ -1,8 +1,9 @@
+import utils.ThreadUtils;
+
 import java.net.MulticastSocket;
 import java.net.DatagramPacket;
 import java.nio.charset.Charset;
 import java.io.File;
-import java.util.concurrent.ThreadLocalRandom;
 import java.io.IOException;
 
 public class SendRestoreFile implements Runnable{
@@ -28,14 +29,6 @@ public class SendRestoreFile implements Runnable{
         this.fileId = fileProcessor.getFileId(file);
     }
 
-    private void sleepThread(int time){
-		try {
-				Thread.sleep(time);
-			} catch (InterruptedException e) {
-				System.out.println("Thread Interrupted");
-				Thread.currentThread().interrupt();
-			}
-	}
 
 	@Override
 	public void run() {
@@ -50,11 +43,10 @@ public class SendRestoreFile implements Runnable{
 					packetSent = true;
 				}catch(IOException e){
 					//buffer is full
-					sleepThread(ThreadLocalRandom.current().nextInt(10, 400));
+                    ThreadUtils.waitBetween(10,400);
 				}
             }
             chunksRequested.add(fileId, chunkNo);
-            System.out.println("RESTORE: Sent GETCHUNK for " + fileId + "_" + chunkNo);
         }
 	}
 

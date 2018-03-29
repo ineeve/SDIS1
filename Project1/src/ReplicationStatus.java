@@ -6,7 +6,8 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import utils.Pair;
-	
+import utils.ThreadUtils;
+
 /**
  * Association of (fileId, chunkNo) pair with actual and desired replication degrees.
  * Desired = Integer read from PUTCHUNKs in MDB.
@@ -19,8 +20,8 @@ public class ReplicationStatus implements Serializable {
 				= new ConcurrentHashMap<Pair<String, Integer>, Pair<Integer, HashSet<String>>>();
 	private transient ObjectOutputStream out;
 	
-	public ReplicationStatus(String peerId) {
-		setOutputStream(peerId);
+	public ReplicationStatus(String path) {
+		setOutputStream(path);
 	}
 	
 	public int getNumConfirms(String fileId, int chunkNo) {
@@ -34,18 +35,12 @@ public class ReplicationStatus implements Serializable {
 	}
 
 	public void putchunk_setDesiredReplicationDeg(int repDeg, String fileId, Integer chunkNo) {
-		System.out.println("Seting desired replication degree: ");
-		System.out.println(fileId + "_" + chunkNo);
 		Pair<String, Integer> key = new Pair<String, Integer>(fileId, chunkNo);
 		repDegrees.putIfAbsent(key, new Pair<Integer, HashSet<String>>(repDeg, new HashSet<String>()));
 		Pair<Integer, HashSet<String>> entry = repDegrees.get(key);
 		entry.setLeft(repDeg);
-		try {
-			out.writeObject(this);
-		} catch (IOException e) {
-			System.out.println("Failed to write storage of desired replication degree.");
-			e.printStackTrace();
-		}
+		tryToWrite();
+
 	}
 	
 	public void stored_addPeerId(String peerId, String fileId, Integer chunkNo) {
@@ -53,16 +48,10 @@ public class ReplicationStatus implements Serializable {
 		repDegrees.putIfAbsent(key, new Pair<Integer, HashSet<String>>(0, new HashSet<String>()));
 		HashSet<String> peerIds = repDegrees.get(key).getRight();
 		peerIds.add(peerId);
-		try {
-			out.writeObject(this);
-		} catch (IOException e) {
-			System.out.println("Failed to write storage of received confirmations.");
-			e.printStackTrace();
-		}
+		tryToWrite();
 	}
 
-	public ReplicationStatus setOutputStream(String peerId) {
-		String path = "data/ReplicationStatus_" + peerId + ".ser";
+	public ReplicationStatus setOutputStream(String path) {
 		try {
 			FileOutputStream fileOut = new FileOutputStream(path);
 			out = new ObjectOutputStream(fileOut);
@@ -72,6 +61,19 @@ public class ReplicationStatus implements Serializable {
 		}
         System.out.println("Serialized data is saved in " + path);
 		return this;
+	}
+
+	private void tryToWrite(){
+		boolean wasWritten = false;
+		do{
+			try {
+				out.writeObject(this);
+                wasWritten = true;
+			} catch (IOException e) {
+				System.out.println("Failed to write Replication Status.");
+                ThreadUtils.waitBetween(10,400);
+			}
+		}while(!wasWritten);
 	}
 	
 }

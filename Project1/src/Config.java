@@ -14,10 +14,16 @@ public class Config {
     private InetAddress mdrIP;
     private int mdrPort;
 
+    private String peerDir;
+
+    public static int MAX_CHUNK_SIZE = 64000; //bytes
+
     public Config(String peerId, String protocol){
         this.peerId = peerId;
+        this.peerDir = String.format("Peer_%s/", peerId);
         this.protocolVersion = protocol;
     }
+
 
 	/**
 	 * @return the peerId
@@ -109,7 +115,10 @@ public class Config {
 		this.mcIP = mcIP;
 	}
 
-    
-    
-    
+    /**
+     * @return the peer Directory where his data will be saved
+     */
+    public String getPeerDir() {
+        return peerDir;
+    }
 }
