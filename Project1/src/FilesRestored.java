@@ -1,3 +1,5 @@
+import utils.Pair;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 
@@ -6,25 +8,35 @@ public class FilesRestored {
      // <fileId, <chunkNo, chunk data>>
      private ConcurrentHashMap<String,ConcurrentHashMap<Integer,byte[]>> filesRestored;
 
-     // <fileId, wasLastChunkReceived>
-     private ConcurrentHashMap<String, Boolean> receivedLastChunk;
+     // <fileId, <wasLastChunkReceived, wasFileRestored>>
+     private ConcurrentHashMap<String, Pair<Boolean,Boolean>> filesInfo;
+
 
     public FilesRestored(){
         filesRestored = new ConcurrentHashMap<>();
-        receivedLastChunk = new ConcurrentHashMap<>();
+        filesInfo = new ConcurrentHashMap<>();
     }
     public void addChunk(String fileId, int chunkNo, byte[] data){
         System.out.println("FilesRestored: Restored chunk " + chunkNo);
         filesRestored.putIfAbsent(fileId, new ConcurrentHashMap<>());
-        receivedLastChunk.putIfAbsent(fileId, false);
+        filesInfo.putIfAbsent(fileId, new Pair<>(false,false));
         filesRestored.get(fileId).putIfAbsent(chunkNo, data);
     }
 
+    public void setFileCreated(String fileId){
+        filesInfo.get(fileId).setRight(true);
+    }
+
+    public boolean wasFileCreated(String fileId){
+        return filesInfo.get(fileId).getRight();
+    }
+
     public void setReceivedLastChunk(String fileId){
-        receivedLastChunk.put(fileId, true);
+
+        filesInfo.get(fileId).setLeft(true);
     }
     public boolean wasLastChunkReceived(String fileId){
-        return receivedLastChunk.get(fileId);
+        return filesInfo.get(fileId).getLeft();
     }
 
     public boolean containsChunk(String fileId, int chunkNo){
@@ -38,13 +50,16 @@ public class FilesRestored {
         fileChunks.addAll(hashmap.values());
         return fileChunks;
     }
-    public boolean haveAll(String fileId, int lastChunk){
-        ConcurrentHashMap<Integer,byte[]> chunks = filesRestored.get(fileId);
-        for (int i = 0; i <= lastChunk; i++){
-            if (!chunks.containsKey(i)){
-                return false;
+    public boolean haveAll(String fileId){
+        if(wasLastChunkReceived(fileId)){
+            ConcurrentHashMap<Integer,byte[]> chunks = filesRestored.get(fileId);
+            for (int i = 0; i < chunks.size(); i++){
+                if (!chunks.containsKey(i)){
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
+        return false;
     }
 }

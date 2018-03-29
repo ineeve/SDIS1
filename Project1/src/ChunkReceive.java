@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -22,12 +23,8 @@ public class ChunkReceive implements Runnable{
 	@Override
 	public void run() {
         if (parseReceivedChunk()){
-            if (receivedLastChunk() && haveAll()){
-                try{
-                    createFile();
-                }catch(IOException e){
-                    System.out.println(e);
-                }
+            if (haveAll() && !filesRestored.wasFileCreated(fileId)){
+                createFile();
             }
         }
     }
@@ -44,34 +41,33 @@ public class ChunkReceive implements Runnable{
         if (filesRestored.containsChunk(fileId, chunkNo)) return false;
         String body = splitMessage[1];
         filesRestored.addChunk(fileId, chunkNo, body.getBytes(Charset.forName("ISO_8859_1")));
-        return true;
-    }
-    private boolean receivedLastChunk(){
-        System.out.println("ChunkReceive: Chunk length " + chunkPacket.getLength());
         if (chunkPacket.getLength() < Config.MAX_CHUNK_SIZE){
             filesRestored.setReceivedLastChunk(fileId);
-            return true;
         }
-        return filesRestored.wasLastChunkReceived(fileId);
+        return true;
     }
 
     private boolean haveAll(){
-        return filesRestored.haveAll(fileId, chunkNo);
+        return filesRestored.haveAll(fileId);
     }
 
-    private void createFile() throws IOException{
+    private void createFile() {
+        filesRestored.setFileCreated(fileId);
         String outputPath = config.getPeerDir() + "restored/" + fileId;
         ArrayList<byte[]> fileChunks = filesRestored.getFile(fileId);
         if (fileChunks.size() > 0){
-            FileOutputStream stream = new FileOutputStream(outputPath);
-            for( byte[] chunk : fileChunks){
-                try{
+            FileOutputStream stream;
+            try {
+                stream = new FileOutputStream(outputPath);
+                for( byte[] chunk : fileChunks){
                     stream.write(chunk);
-                }finally{
-                    stream.close();
                 }
-                
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
             System.out.println("File restored to " + outputPath);
         }
     }
