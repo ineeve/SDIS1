@@ -38,7 +38,7 @@ public class Peer {
 	}
 	
 	private Config parseArgs(String[] args) {
-		if (args.length < 5) {
+		if (args.length < 7) {
 			System.out.println("Usage:");
 			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
 			System.exit(1);
