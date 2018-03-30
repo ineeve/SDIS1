@@ -8,6 +8,8 @@ public class Messages {
 	private final static String CHUNK = "CHUNK";
 	private final static String PUTCHUNK = "PUTCHUNK";
 	private final static String REMOVED = "REMOVED";
+	private final static String DELETE = "DELETE";
+
 	
 	
 	public static boolean isStored(DatagramPacket packet) {
@@ -23,6 +25,10 @@ public class Messages {
 		return getType(packet).equals(PUTCHUNK);
 	}
 	public static boolean isRemoved(DatagramPacket packet){ return getType(packet).equals(REMOVED); }
+
+	public static boolean isDelete(DatagramPacket packet) {
+		return getType(packet).equals(DELETE);
+	}
 
 	private static String getType(DatagramPacket packet) {
 		String msg = new String(packet.getData(), Charset.forName("ISO_8859_1")).trim();
