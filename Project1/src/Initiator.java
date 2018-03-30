@@ -47,6 +47,7 @@ public class Initiator implements Runnable {
 	public void run() {
 		System.out.println("1. Backup file");
 		System.out.println("2. Restore file");
+		System.out.println("3. Delete file");
 		System.out.print("\nOption: ");
 		while (true) {
 			int option = terminal.nextInt();
@@ -65,15 +66,24 @@ public class Initiator implements Runnable {
 			break;
 		case 2:
 			restoreFileMenu();
+		case 3:
+			deleteFileMenu();
 		default:
 			return;
 		}
 	}
 	
+	private void deleteFileMenu() {
+		FileProcessor fileProcessor = new FileProcessor();
+		File file = fileProcessor.loadFileFromTerminal();
+		pool.execute(new SendDeleteFile(config, mcSocket, file));
+	}
+
+
 	private void restoreFileMenu() {
 		FileProcessor fileProcessor = new FileProcessor();
 		File file = fileProcessor.loadFileFromTerminal();
-		pool.execute(new SendRestoreFile(config, mcSocket,file, chunksRequested));
+		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
 	}
 
 	private byte readDesiredReplicationDegree(){

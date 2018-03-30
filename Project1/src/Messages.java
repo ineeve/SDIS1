@@ -7,6 +7,7 @@ public class Messages {
 	private final static String GETCHUNK = "GETCHUNK";
 	private final static String CHUNK = "CHUNK";
 	private final static String PUTCHUNK = "PUTCHUNK";
+	private final static String DELETE = "DELETE";
 	
 	
 	public static boolean isStored(DatagramPacket packet) {
@@ -21,6 +22,10 @@ public class Messages {
 	}
 	public static boolean isPutChunk(DatagramPacket packet){
 		return getType(packet).equals(PUTCHUNK);
+	}
+
+	public static boolean isDelete(DatagramPacket packet) {
+		return getType(packet).equals(DELETE);
 	}
 
 	private static String getType(DatagramPacket packet) {

@@ -36,17 +36,19 @@ public class MCListener implements Runnable {
 
 	private void receiveChunk() {
 		int datagramMaxSize = (int) Math.pow(2,16);
-		DatagramPacket chunkPacket = new DatagramPacket(new byte[datagramMaxSize], datagramMaxSize);
+		DatagramPacket packet = new DatagramPacket(new byte[datagramMaxSize], datagramMaxSize);
 		try {
-			mcSocket.receive(chunkPacket);
+			mcSocket.receive(packet);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		if (Messages.isStored(chunkPacket)) {
-			pool.execute(new StoredReceive(chunkPacket, replicationStatus));
-		} else if (Messages.isGetChunk(chunkPacket)) {
-			pool.execute(new GetChunkReceive(config, mdrSocket, chunkPacket));
-		}else{
+		if (Messages.isStored(packet)) {
+			pool.execute(new StoredReceive(packet, replicationStatus));
+		} else if (Messages.isGetChunk(packet)) {
+			pool.execute(new GetChunkReceive(config, mdrSocket, packet));
+		} else if (Messages.isDelete(packet)) {
+			pool.execute(new DeleteReceive(config, packet));
+		} else {
 			System.out.println("Caught unhandled message in MCListener");
 		}
 	}
