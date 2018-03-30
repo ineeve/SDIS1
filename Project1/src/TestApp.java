@@ -1,5 +1,6 @@
 
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -21,11 +22,32 @@ public class TestApp {
 	        RMIInterface stub = (RMIInterface) registry.lookup("Hello"); 
 	    
 	        // Calling the remote method using the obtained object 
-	        //stub.printMsg();
+	        invokeServer(stub);
 	    } catch (Exception e) {
 	        System.err.println("Client exception: " + e.toString()); 
 	        e.printStackTrace(); 
 	    } 
+	}
+
+	private static void invokeServer(RMIInterface stub) throws RemoteException {
+		switch (operation) {
+		case BACKUP:
+			stub.backup(pathname);
+			break;
+		case RESTORE:
+			stub.restore(pathname);
+			break;
+		case DELETE:
+			stub.delete(pathname);
+			break;
+		case RECLAIM:
+			stub.reclaim(maxDiskSpace);
+		case STATE:
+			stub.state();
+			break;
+		default:
+			System.err.println("TestApp: Invalid Operation.");
+		}
 	}
 
 	private static void parseArgs(String[] args) {
@@ -44,6 +66,8 @@ public class TestApp {
 			break;
 		case RECLAIM:
 			maxDiskSpace = Integer.parseInt(args[2]);
+			break;
+		case STATE:
 			break;
 		default:
 			System.err.println("TestApp: Invalid Operation.");
