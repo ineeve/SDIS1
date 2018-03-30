@@ -47,6 +47,7 @@ public class SendDeleteFile implements Runnable {
 			}
 			numTries++;
 		}
+		System.out.println("SendDeleteFile: Sent delete packet");
 	}
 
 	private DatagramPacket makeDeletePacket() {

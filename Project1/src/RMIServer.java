@@ -21,7 +21,7 @@ public class RMIServer implements RMIInterface{
 	}
 
 	@Override
-	public void reclaim(int maxDiskSpace) throws RemoteException {
+	public void reclaim(long maxDiskSpace) throws RemoteException {
 		// TODO Auto-generated method stub
 		
 	}

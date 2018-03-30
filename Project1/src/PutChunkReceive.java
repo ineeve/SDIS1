@@ -50,9 +50,7 @@ public class PutChunkReceive implements Runnable {
 			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
 			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
 			try {
-                if(chunksStoredForFile.contains(chunkNo)){
-                    System.out.println("chunk already stored");
-                }else{
+                if(!chunksStoredForFile.contains(chunkNo)){
                     chunksStoredForFile.add(chunkNo);
                     storeChunk(body,fileId,chunkNo);
                 }
@@ -71,7 +69,7 @@ public class PutChunkReceive implements Runnable {
 		}
 		try {
 			mcSocket.send(storedPacket);
-			System.out.println("PutChunkReceive: Stored confirmation sent: " + chunkNo);
+			System.out.println("PutChunkReceive: Stored confirmation sent for chunk: " + chunkNo);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -91,7 +89,6 @@ public class PutChunkReceive implements Runnable {
             DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
             out.writeBytes(body);
             out.close();
-            System.out.println("PutchunkReceive: bytes used - " + repStatus.getBytesUsed());
         }else{
             System.out.println("No disk space available: " + repStatus.getBytesUsed() + "/" + repStatus.getBytesReserved());
         }

@@ -9,7 +9,7 @@ public class TestApp {
 	private static String accessPoint;
 	private static Operation operation;
 	private static String pathname; // for BACKUP, RESTORE and DELETE
-	private static int maxDiskSpace; // KByte for RECLAIM
+	private static long maxDiskSpace; // KByte for RECLAIM
 	private static byte desiredRepDegree; // for BACKUP
 	
 	public static void main(String[] args) {
@@ -65,7 +65,7 @@ public class TestApp {
 			pathname = args[2];
 			break;
 		case RECLAIM:
-			maxDiskSpace = Integer.parseInt(args[2]);
+			maxDiskSpace = Long.parseLong(args[2]);
 			break;
 		case STATE:
 			break;

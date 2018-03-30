@@ -55,6 +55,7 @@ public class FilesRestored {
             ConcurrentHashMap<Integer,byte[]> chunks = filesRestored.get(fileId);
             for (int i = 0; i < chunks.size(); i++){
                 if (!chunks.containsKey(i)){
+                    System.out.println("Missing chunk " + i);
                     return false;
                 }
             }

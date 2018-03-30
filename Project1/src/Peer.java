@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.nio.file.FileSystems;
+import java.nio.file.WatchService;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -13,8 +15,7 @@ import java.util.concurrent.Executors;
 public class Peer implements RMIInterface {
 
 	private ExecutorService pool = Executors.newCachedThreadPool();
-	
-	private Initiator initiator;
+
 	private MCListener mcListener;
 	private MDBListener mdbListener;
 	private MDRListener mdrListener;
@@ -25,6 +26,8 @@ public class Peer implements RMIInterface {
 	// SHARED
 	private ReplicationStatus repStatus;
 	private final ChunksRequested chunksRequested;
+
+	private WatchService watcher;
 	
 	private Config config;
 	
@@ -34,12 +37,11 @@ public class Peer implements RMIInterface {
 		createFolders();
 		createSockets();
 		repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
-		initiator = new Initiator(config, repStatus);
+
 		mcListener = new MCListener(config, repStatus);
 		mdbListener = new MDBListener(config, repStatus);
 		mdrListener = new MDRListener(config);
-		
-		Thread initiatorThr = new Thread(initiator);
+
 		Thread mdbListenerThr = new Thread(mcListener);
 		Thread mcListenerThr = new Thread(mdbListener);
 		Thread mdrListenerThr = new Thread(mdrListener);
@@ -47,7 +49,6 @@ public class Peer implements RMIInterface {
 		mdbListenerThr.start();
 		mcListenerThr.start();
 		mdrListenerThr.start();
-		initiatorThr.start();
 	}
 
 	private void createSockets() {
@@ -139,8 +140,9 @@ public class Peer implements RMIInterface {
 	}
 
 	@Override
-	public void reclaim(int maxDiskSpace) throws RemoteException {
-		// TODO Auto-generated method stub
+	public void reclaim(long maxDiskSpace) throws RemoteException {
+		repStatus.setBytesReserved(maxDiskSpace * 1000);
+		pool.execute(new ReclaimDiskSpace(config, repStatus));
 		
 	}
 

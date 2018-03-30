@@ -57,7 +57,6 @@ public class ReplicationStatus implements Serializable {
 	}
 
 	public void putchunk_setDesiredReplicationDeg(byte repDeg, String fileId, Integer chunkNo) {
-	    System.out.println("ReplicationStatus: Saving desired replication degree for " + chunkNo);
 		Pair<String, Integer> key = new Pair<>(fileId, chunkNo);
 		repDegrees.putIfAbsent(key, new Pair<>(repDeg, new HashSet<>()));
 		Pair<Byte, HashSet<String>> entry = repDegrees.get(key);

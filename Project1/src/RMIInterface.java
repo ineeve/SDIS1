@@ -5,5 +5,5 @@ public interface RMIInterface extends Remote{
 	public void restore(String pathname) throws java.rmi.RemoteException;
 	public void delete(String pathname) throws java.rmi.RemoteException;
 	public void state() throws java.rmi.RemoteException;
-	public void reclaim(int maxDiskSpace) throws java.rmi.RemoteException;
+	public void reclaim(long maxDiskSpace) throws java.rmi.RemoteException;
 }
