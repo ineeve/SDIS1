@@ -25,8 +25,8 @@ public class MCListener implements Runnable {
 
 	private Set<String> filesToNotWatch; //this is thread-safe
 
-	public MCListener(Config config, ReplicationStatus replicationStatus) {
-		filesToNotWatch = new ConcurrentHashMap().newKeySet();
+	public MCListener(Config config, ReplicationStatus replicationStatus, Set<String> filesToNotWatch) {
+		this.filesToNotWatch = filesToNotWatch;
 	    this.config = config;
 		this.replicationStatus = replicationStatus;
 		createWatcher();

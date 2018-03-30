@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -18,15 +19,18 @@ public class PutChunkReceive implements Runnable {
 	private MulticastSocket mcSocket;
 	private ConcurrentHashMap<String, ArrayList<Integer>> chunksStored;
 	private ReplicationStatus repStatus;
+	private Set<String> filesToNotWatch;
 
 	private Config config;
 
-	public PutChunkReceive(Config config, DatagramPacket putChunkPacket, ConcurrentHashMap<String,ArrayList<Integer>> chunksStored, ReplicationStatus repStatus, MulticastSocket mcSocket) {
+	public PutChunkReceive(Config config, DatagramPacket putChunkPacket, ConcurrentHashMap<String, ArrayList<Integer>> chunksStored,
+                           ReplicationStatus repStatus, MulticastSocket mcSocket, Set<String> filesToNotWatch) {
 		this.config = config;
 		this.putChunkPacket = putChunkPacket;
 		this.chunksStored = chunksStored;
 		this.repStatus = repStatus;
 		this.mcSocket = mcSocket;
+		this.filesToNotWatch = filesToNotWatch;
 	}
 
 	@Override
@@ -44,6 +48,7 @@ public class PutChunkReceive implements Runnable {
 		String senderId = head[2];
 		if (senderId.equals(config.getPeerId())) return;
 			String fileId = head[3];
+			filesToNotWatch.remove(fileId);
 			int chunkNo = Integer.parseInt(head[4]);
 			byte repDeg = (byte) Integer.parseInt(head[5]);
 			chunksStored.putIfAbsent(fileId, new ArrayList<>());

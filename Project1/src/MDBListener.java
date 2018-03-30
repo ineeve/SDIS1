@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,8 +16,10 @@ public class MDBListener implements Runnable {
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private Config config;
+	private Set<String> filesToNotWatch;
 
-	public MDBListener(Config config, ReplicationStatus repStatus) {
+	public MDBListener(Config config, ReplicationStatus repStatus, Set<String> filesToNotWatch) {
+		this.filesToNotWatch = filesToNotWatch;
 		this.config = config;
 		this.repStatus = repStatus;
 		chunksStored = new ConcurrentHashMap<>();
@@ -41,7 +44,7 @@ public class MDBListener implements Runnable {
 			e.printStackTrace();
 		}
 		if (Messages.isPutChunk(putChunkPacket)){
-            pool.execute(new PutChunkReceive(config, putChunkPacket, chunksStored, repStatus, mcSocket));
+            pool.execute(new PutChunkReceive(config, putChunkPacket, chunksStored, repStatus, mcSocket, filesToNotWatch));
         }else{
             System.out.println("Caught unhandled message in MDBListener");
         }

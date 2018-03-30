@@ -9,6 +9,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,6 +27,7 @@ public class Peer implements RMIInterface {
 	
 	// SHARED
 	private ReplicationStatus repStatus;
+	private Set<String> filesToNotWatch;
 	private final ChunksRequested chunksRequested;
 
 	private WatchService watcher;
@@ -37,9 +40,10 @@ public class Peer implements RMIInterface {
 		createFolders();
 		createSockets();
 		repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
+		filesToNotWatch = new ConcurrentHashMap().newKeySet();
 
-		mcListener = new MCListener(config, repStatus);
-		mdbListener = new MDBListener(config, repStatus);
+		mcListener = new MCListener(config, repStatus, filesToNotWatch);
+		mdbListener = new MDBListener(config, repStatus, filesToNotWatch);
 		mdrListener = new MDRListener(config);
 
 		Thread mdbListenerThr = new Thread(mcListener);
