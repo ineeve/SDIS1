@@ -61,7 +61,7 @@ public class FileProcessor{
         } while (file == null);
         return file;
     }
-    public String getFileId(File file){
+    public static String getFileId(File file){
 		String filename = file.getName();
 		BasicFileAttributes attr = null;
 		try {

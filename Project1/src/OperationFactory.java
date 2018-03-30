@@ -11,6 +11,8 @@ public class OperationFactory {
 			return Operation.DELETE;
 		case "RECLAIM":
 			return Operation.RECLAIM;
+		case "STATE":
+			return Operation.STATE;
 		default:
 			return null;
 		}

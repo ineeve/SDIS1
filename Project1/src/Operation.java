@@ -3,5 +3,6 @@ public enum Operation {
 	BACKUP,
 	RESTORE,
 	DELETE,
-	RECLAIM
+	RECLAIM,
+	STATE
 }

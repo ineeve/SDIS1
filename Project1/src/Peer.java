@@ -1,20 +1,39 @@
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class Peer {
+public class Peer implements RMIInterface {
+
+	private ExecutorService pool = Executors.newCachedThreadPool();
 	
 	private Initiator initiator;
 	private MCListener mcListener;
 	private MDBListener mdbListener;
 	private MDRListener mdrListener;
 	
+	private MulticastSocket mcSocket;
+	private MulticastSocket mdbSocket;
+	
+	// SHARED
+	private ReplicationStatus repStatus;
+	private final ChunksRequested chunksRequested;
+	
 	private Config config;
 	
-	public Peer(String[] args) {
+	public Peer(String[] args) throws RemoteException {
+		this.chunksRequested = new ChunksRequested();
 		this.config = parseArgs(args);
 		createFolders();
-		ReplicationStatus repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
+		createSockets();
+		repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
 		initiator = new Initiator(config, repStatus);
 		mcListener = new MCListener(config, repStatus);
 		mdbListener = new MDBListener(config, repStatus);
@@ -29,6 +48,20 @@ public class Peer {
 		mcListenerThr.start();
 		mdrListenerThr.start();
 		initiatorThr.start();
+	}
+
+	private void createSockets() {
+		try {
+			mcSocket = new MulticastSocket(config.getMcPort());
+			mcSocket.joinGroup(config.getMcIP());
+			mcSocket.setTimeToLive(3);
+			mdbSocket = new MulticastSocket(config.getMdbPort());
+			mdbSocket.joinGroup(config.getMdbIP());
+			mdbSocket.setTimeToLive(3);
+		} catch (IOException e) {
+			System.err.println("Peer: Failed to create sockets.");
+			e.printStackTrace();
+		}
 	}
 
 	private void createFolders(){
@@ -59,10 +92,56 @@ public class Peer {
 		return config;
 	}
 
-	public static void main(String[] args) {
-		//Non initiator peers: java Peer id MC_ip MC_port MDB_ip MDB_port
-		//Initiator peers: java Peer id MC_ip MC_port MDB_ip MDB_port filename replication
-		new Peer(args);
+	public static void main(String[] args) throws RemoteException {
+		try { 
+	         // Instantiating the implementation class 
+	         Peer peer = new Peer(args); 
+	    
+	         // Exporting the object of implementation class  
+	         // (here we are exporting the remote object to the stub) 
+	         RMIInterface stub = (RMIInterface) UnicastRemoteObject.exportObject(peer, 0);  
+	         
+	         // Binding the remote object (stub) in the registry 
+	         Registry registry = LocateRegistry.getRegistry(null);
+	         
+	         registry.rebind(String.format("Peer_%s", peer.config.getPeerId()), stub);
+	         System.out.println("Server ready"); 
+	      } catch (Exception e) { 
+	         System.err.println("Server exception: " + e.toString()); 
+	         e.printStackTrace(); 
+	      }
+	}
+
+	@Override
+	public void backup(String pathname, byte desiredRepDegree) throws RemoteException {
+		File file = FileProcessor.loadFile(pathname);
+		String fileId = FileProcessor.getFileId(file);
+		byte[] data = FileProcessor.getData(file);
+        pool.execute(new StoreFile(config, mdbSocket, fileId, desiredRepDegree, data, repStatus));
+	}
+
+	@Override
+	public void restore(String pathname) throws RemoteException {
+		File file = FileProcessor.loadFile(pathname);
+		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
+	}
+
+	@Override
+	public void delete(String pathname) throws RemoteException {
+		File file = FileProcessor.loadFile(pathname);
+		pool.execute(new SendDeleteFile(config, mcSocket, file));
+	}
+
+	@Override
+	public void state() throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void reclaim(int maxDiskSpace) throws RemoteException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

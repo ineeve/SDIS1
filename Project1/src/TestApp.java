@@ -1,5 +1,6 @@
 
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -9,7 +10,7 @@ public class TestApp {
 	private static Operation operation;
 	private static String pathname; // for BACKUP, RESTORE and DELETE
 	private static int maxDiskSpace; // KByte for RECLAIM
-	private static int desiredRepDegree; // for BACKUP
+	private static byte desiredRepDegree; // for BACKUP
 	
 	public static void main(String[] args) {
 		parseArgs(args);
@@ -18,14 +19,35 @@ public class TestApp {
 	        Registry registry = LocateRegistry.getRegistry(null); 
 	    
 	        // Looking up the registry for the remote object 
-	        RMIInterface stub = (RMIInterface) registry.lookup("Hello"); 
+	        RMIInterface stub = (RMIInterface) registry.lookup(accessPoint); 
 	    
 	        // Calling the remote method using the obtained object 
-	        //stub.printMsg();
+	        invokeServer(stub);
 	    } catch (Exception e) {
 	        System.err.println("Client exception: " + e.toString()); 
 	        e.printStackTrace(); 
 	    } 
+	}
+
+	private static void invokeServer(RMIInterface stub) throws RemoteException {
+		switch (operation) {
+		case BACKUP:
+			stub.backup(pathname, desiredRepDegree);
+			break;
+		case RESTORE:
+			stub.restore(pathname);
+			break;
+		case DELETE:
+			stub.delete(pathname);
+			break;
+		case RECLAIM:
+			stub.reclaim(maxDiskSpace);
+		case STATE:
+			stub.state();
+			break;
+		default:
+			System.err.println("TestApp: Invalid Operation.");
+		}
 	}
 
 	private static void parseArgs(String[] args) {
@@ -45,6 +67,8 @@ public class TestApp {
 		case RECLAIM:
 			maxDiskSpace = Integer.parseInt(args[2]);
 			break;
+		case STATE:
+			break;
 		default:
 			System.err.println("TestApp: Invalid Operation.");
 			printUsage();
@@ -56,7 +80,7 @@ public class TestApp {
 				printUsage();
 				System.exit(1);
 			}
-			desiredRepDegree = Integer.parseInt(args[3]);
+			desiredRepDegree = (byte) Integer.parseInt(args[3]);
 		}
 	}
 
