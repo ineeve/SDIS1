@@ -67,7 +67,7 @@ public class StoreChunk implements Runnable {
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, byte[] data) {
-		String putChunkMsgStr = "PUTCHUNK 1.0 " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
+		String putChunkMsgStr = "PUTCHUNK " + config.getProtocolVersion() + " " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
 		byte[] putChunkMsgHeader = putChunkMsgStr.getBytes(Charset.forName("ISO_8859_1"));
 		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + data.length];
 		for (int i = 0; i < putChunkMsg.length; i++) {

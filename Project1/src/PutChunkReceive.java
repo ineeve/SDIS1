@@ -45,7 +45,7 @@ public class PutChunkReceive implements Runnable {
 		if (senderId.equals(config.getPeerId())) return;
 			String fileId = head[3];
 			int chunkNo = Integer.parseInt(head[4]);
-			int repDeg = Integer.parseInt(head[5]);
+			byte repDeg = (byte) Integer.parseInt(head[5]);
 			chunksStored.putIfAbsent(fileId, new ArrayList<>());
 			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
 			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
@@ -84,9 +84,8 @@ public class PutChunkReceive implements Runnable {
 	}
 	
 	private void storeChunk(String body, String fileId, int chunkNo) throws IOException {
-		String dir = config.getPeerDir() + "stored/" + fileId + "/";
-		new File(dir).mkdirs();
-		File chunk = new File(dir + chunkNo + ".out");
+		String chunkPath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
+		File chunk = new File(chunkPath);
 		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
 		out.writeBytes(body);
 		out.close();

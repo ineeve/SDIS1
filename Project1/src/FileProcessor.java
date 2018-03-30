@@ -1,4 +1,6 @@
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -11,7 +13,28 @@ public class FileProcessor{
 
     private Scanner terminal = new Scanner(System.in);
 
-    public File loadFile(String filepath){
+    public static String createChunkName(String fileId, Integer chunkNo){
+        return fileId + "_" + chunkNo + ".out";
+    }
+
+
+    public static byte[] getData(File file){
+        Path path;
+        try {
+            path = Paths.get(file.getCanonicalPath());
+        } catch (IOException e) {
+            System.out.println("I do not have file: " + file.getName());
+            return null;
+        }
+        try {
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static File loadFile(String filepath){
         File file = new File(filepath);
         if (!file.exists()){
             System.out.println("File " + filepath + " does not exist");
@@ -59,6 +82,14 @@ public class FileProcessor{
 	        sb.append(String.format("%02X", b));
 	    }
 	    return sb.toString();
+	}
+	public static String getFileId(Path filepath){
+    	String filename = filepath.getFileName().toString();
+    	return filename.split("_")[0];
+	}
+	public static Integer getChunkNo(Path filepath){
+        String filename = filepath.getFileName().toString();
+        return Integer.valueOf(filename.split("_")[1].split("\\.")[0]);
 	}
 
 	

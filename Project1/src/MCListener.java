@@ -6,12 +6,14 @@ import java.util.concurrent.Executors;
 
 public class MCListener implements Runnable {
 
+
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
 	private Config config;
 	private ReplicationStatus replicationStatus;
 	private MulticastSocket mcSocket;
 	private MulticastSocket mdrSocket;
+	private MulticastSocket mdbSocket;
 
 	public MCListener(Config config, ReplicationStatus replicationStatus) {
 		this.config = config;
@@ -21,6 +23,8 @@ public class MCListener implements Runnable {
 			mcSocket.joinGroup(config.getMcIP());
 			mdrSocket = new MulticastSocket(config.getMdrPort());
 			mdrSocket.joinGroup(config.getMdrIP());
+			mdbSocket = new MulticastSocket(config.getMdbPort());
+			mdbSocket.joinGroup(config.getMdbIP());
 		} catch (IOException e) {
 			System.out.println("Failed to start MCListener service.");
 			e.printStackTrace();
@@ -46,7 +50,9 @@ public class MCListener implements Runnable {
 			pool.execute(new StoredReceive(chunkPacket, replicationStatus));
 		} else if (Messages.isGetChunk(chunkPacket)) {
 			pool.execute(new GetChunkReceive(config, mdrSocket, chunkPacket));
-		}else{
+		} else if (Messages.isRemoved(chunkPacket)){
+			pool.execute(new HandleRemoved(config, replicationStatus, chunkPacket, mdbSocket));
+		} else{
 			System.out.println("Caught unhandled message in MCListener");
 		}
 	}

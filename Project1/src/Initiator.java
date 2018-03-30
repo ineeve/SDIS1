@@ -1,9 +1,6 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.MulticastSocket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,10 +38,15 @@ public class Initiator implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
+
+	private void createWatcher() {
+		pool.execute(new WatchStored(config,mcSocket));
+	}
+
 
 	@Override
 	public void run() {
+		createWatcher();
 		System.out.println("1. Backup file");
 		System.out.println("2. Restore file");
 		System.out.print("\nOption: ");
@@ -88,15 +90,17 @@ public class Initiator implements Runnable {
 	private void backupFileMenu() throws IOException {
 		FileProcessor fileProcessor = new FileProcessor();
 		File file = fileProcessor.loadFileFromTerminal();
-		Path path = Paths.get(file.getCanonicalPath());
-		byte replicationDegree = 0;
+        byte[] data = FileProcessor.getData(file);
+        if (data != null){
+            byte replicationDegree = 0;
 
-		//get desired replication degree
-		replicationDegree = readDesiredReplicationDegree();
+            //get desired replication degree
+            replicationDegree = readDesiredReplicationDegree();
 
-		byte[] data = Files.readAllBytes(path);
-		String fileId = fileProcessor.getFileId(file); // Missing metadata
-		pool.execute(new StoreFile(config, mdbSocket, fileId, replicationDegree, data, replicationStatus));
+
+            String fileId = fileProcessor.getFileId(file); // Missing metadata
+            pool.execute(new StoreFile(config, mdbSocket, fileId, replicationDegree, data, replicationStatus));
+        }
 	}
 
 }
