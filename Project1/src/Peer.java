@@ -22,10 +22,14 @@ public class Peer implements RMIInterface {
 	private MulticastSocket mcSocket;
 	private MulticastSocket mdbSocket;
 	
+	// SHARED
 	private ReplicationStatus repStatus;
+	private final ChunksRequested chunksRequested;
+	
 	private Config config;
 	
 	public Peer(String[] args) throws RemoteException {
+		this.chunksRequested = new ChunksRequested();
 		this.config = parseArgs(args);
 		createFolders();
 		createSockets();
@@ -118,14 +122,14 @@ public class Peer implements RMIInterface {
 
 	@Override
 	public void restore(String pathname) throws RemoteException {
-		// TODO Auto-generated method stub
-		
+		File file = FileProcessor.loadFile(pathname);
+		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
 	}
 
 	@Override
 	public void delete(String pathname) throws RemoteException {
-		// TODO Auto-generated method stub
-		
+		File file = FileProcessor.loadFile(pathname);
+		pool.execute(new SendDeleteFile(config, mcSocket, file));
 	}
 
 	@Override
