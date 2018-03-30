@@ -15,7 +15,7 @@ public class RemovedSend implements Runnable {
     public RemovedSend(Config config, MulticastSocket mcSocket, Path filename){
         this.config = config;
         this.mcSocket = mcSocket;
-        fileId = FileProcessor.getFileId(filename);
+        fileId = FileProcessor.getFileIdByPath(filename);
         chunkNo = FileProcessor.getChunkNo(filename);
     }
 

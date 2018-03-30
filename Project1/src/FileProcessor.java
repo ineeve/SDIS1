@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 
 public class FileProcessor{
 
-    private Scanner terminal = new Scanner(System.in);
+    private static Scanner terminal = new Scanner(System.in);
 
     public static String createChunkName(String fileId, Integer chunkNo){
         return fileId + "_" + chunkNo + ".out";
@@ -50,8 +50,8 @@ public class FileProcessor{
         return file;
     }
 
-    public File loadFileFromTerminal(){
-        File file = null;
+    public static File loadFileFromTerminal(){
+        File file;
 
 		//get filename and make sure it exists
 		do {
@@ -86,7 +86,7 @@ public class FileProcessor{
 	    }
 	    return sb.toString();
 	}
-	public static String getFileId(Path filepath){
+	public static String getFileIdByPath(Path filepath){
     	String filename = filepath.getFileName().toString();
     	return filename.split("_")[0];
 	}

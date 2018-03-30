@@ -68,23 +68,23 @@ public class Initiator implements Runnable {
 			break;
 		case 2:
 			restoreFileMenu();
+			break;
 		case 3:
 			deleteFileMenu();
+			break;
 		default:
 			return;
 		}
 	}
 	
 	private void deleteFileMenu() {
-		FileProcessor fileProcessor = new FileProcessor();
-		File file = fileProcessor.loadFileFromTerminal();
+		File file = FileProcessor.loadFileFromTerminal();
 		pool.execute(new SendDeleteFile(config, mcSocket, file));
 	}
 
 
 	private void restoreFileMenu() {
-		FileProcessor fileProcessor = new FileProcessor();
-		File file = fileProcessor.loadFileFromTerminal();
+		File file = FileProcessor.loadFileFromTerminal();
 		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
 	}
 

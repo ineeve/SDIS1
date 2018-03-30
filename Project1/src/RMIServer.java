@@ -26,10 +26,4 @@ public class RMIServer implements RMIInterface{
 		
 	}
 
-	@Override
-	public void reclaim() throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
 }
