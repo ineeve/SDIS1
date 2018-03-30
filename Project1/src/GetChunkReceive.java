@@ -34,7 +34,7 @@ public class GetChunkReceive implements Runnable {
 		String fileId = head[3];
 		Integer chunkNo = Integer.parseInt(head[4]);
 		
-		String chunkFilename = String.format("%sstored/%s/%d.out", config.getPeerDir(), fileId, chunkNo);
+		String chunkFilename = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
 		Path path = Paths.get(chunkFilename);
 		byte[] data;
 		try {
