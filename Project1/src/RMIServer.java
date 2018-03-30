@@ -3,7 +3,7 @@ import java.rmi.RemoteException;
 public class RMIServer implements RMIInterface{
 	
 	@Override
-	public void backup(String pathname) throws RemoteException {
+	public void backup(String pathname, byte desiredRepDegree) throws RemoteException {
 		// TODO Auto-generated method stub
 		
 	}

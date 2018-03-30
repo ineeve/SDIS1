@@ -10,7 +10,7 @@ public class TestApp {
 	private static Operation operation;
 	private static String pathname; // for BACKUP, RESTORE and DELETE
 	private static int maxDiskSpace; // KByte for RECLAIM
-	private static int desiredRepDegree; // for BACKUP
+	private static byte desiredRepDegree; // for BACKUP
 	
 	public static void main(String[] args) {
 		parseArgs(args);
@@ -19,7 +19,7 @@ public class TestApp {
 	        Registry registry = LocateRegistry.getRegistry(null); 
 	    
 	        // Looking up the registry for the remote object 
-	        RMIInterface stub = (RMIInterface) registry.lookup("Hello"); 
+	        RMIInterface stub = (RMIInterface) registry.lookup(accessPoint); 
 	    
 	        // Calling the remote method using the obtained object 
 	        invokeServer(stub);
@@ -32,7 +32,7 @@ public class TestApp {
 	private static void invokeServer(RMIInterface stub) throws RemoteException {
 		switch (operation) {
 		case BACKUP:
-			stub.backup(pathname);
+			stub.backup(pathname, desiredRepDegree);
 			break;
 		case RESTORE:
 			stub.restore(pathname);
@@ -80,7 +80,7 @@ public class TestApp {
 				printUsage();
 				System.exit(1);
 			}
-			desiredRepDegree = Integer.parseInt(args[3]);
+			desiredRepDegree = (byte) Integer.parseInt(args[3]);
 		}
 	}
 

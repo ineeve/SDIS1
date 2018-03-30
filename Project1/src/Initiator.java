@@ -1,6 +1,10 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.MulticastSocket;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,70 +51,103 @@ public class Initiator implements Runnable {
 	@Override
 	public void run() {
 		createWatcher();
-		System.out.println("1. Backup file");
-		System.out.println("2. Restore file");
-		System.out.println("3. Delete file");
-		System.out.print("\nOption: ");
-		while (true) {
-			int option = terminal.nextInt();
-			treatOption(option);
-		}
+		
+//		System.out.println("1. Backup file");
+//		System.out.println("2. Restore file");
+//		System.out.println("3. Delete file");
+//		System.out.print("\nOption: ");
+//		while (true) {
+//			int option = terminal.nextInt();
+//			treatOption(option);
+//		}
 	}
 
-	private void treatOption(int option) {
-		switch (option) {
-		case 1:
-			try {
-				backupFileMenu();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			break;
-		case 2:
-			restoreFileMenu();
-			break;
-		case 3:
-			deleteFileMenu();
-			break;
-		default:
-			return;
-		}
-	}
+//	private void treatOption(int option) {
+//		switch (option) {
+//		case 1:
+//			try {
+//				backupFileMenu();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			break;
+//		case 2:
+//			restoreFileMenu();
+//			break;
+//		case 3:
+//			deleteFileMenu();
+//			break;
+//		default:
+//			return;
+//		}
+//	}
 	
-	private void deleteFileMenu() {
-		File file = FileProcessor.loadFileFromTerminal();
-		pool.execute(new SendDeleteFile(config, mcSocket, file));
-	}
+//	private void deleteFileMenu() {
+//		File file = FileProcessor.loadFileFromTerminal();
+//		pool.execute(new SendDeleteFile(config, mcSocket, file));
+//	}
+//
+//
+//	private void restoreFileMenu() {
+//		File file = FileProcessor.loadFileFromTerminal();
+//		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
+//	}
+//
+//	private byte readDesiredReplicationDegree(){
+//		byte replicationDegree = 0;
+//		do {
+//			System.out.println("Desired Replication Degree: ");
+//			replicationDegree = terminal.nextByte();
+//		} while(replicationDegree < 1);
+//		return replicationDegree;
+//	}
+//
+//	private void backupFileMenu() throws IOException {
+//		FileProcessor fileProcessor = new FileProcessor();
+//		File file = fileProcessor.loadFileFromTerminal();
+//        byte[] data = FileProcessor.getData(file);
+//        if (data != null){
+//            byte replicationDegree = 0;
+//
+//            //get desired replication degree
+//            replicationDegree = readDesiredReplicationDegree();
+//
+//
+//            String fileId = FileProcessor.getFileId(file); // Missing metadata
+//            pool.execute(new StoreFile(config, mdbSocket, fileId, replicationDegree, data, replicationStatus));
+//        }
+//	}
 
-
-	private void restoreFileMenu() {
-		File file = FileProcessor.loadFileFromTerminal();
-		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
-	}
-
-	private byte readDesiredReplicationDegree(){
-		byte replicationDegree = 0;
-		do {
-			System.out.println("Desired Replication Degree: ");
-			replicationDegree = terminal.nextByte();
-		} while(replicationDegree < 1);
-		return replicationDegree;
-	}
-
-	private void backupFileMenu() throws IOException {
-		FileProcessor fileProcessor = new FileProcessor();
-		File file = fileProcessor.loadFileFromTerminal();
-        byte[] data = FileProcessor.getData(file);
-        if (data != null){
-            byte replicationDegree = 0;
-
-            //get desired replication degree
-            replicationDegree = readDesiredReplicationDegree();
-
-
-            String fileId = fileProcessor.getFileId(file); // Missing metadata
-            pool.execute(new StoreFile(config, mdbSocket, fileId, replicationDegree, data, replicationStatus));
-        }
-	}
+//	@Override
+//	public void backup(String pathname, byte desiredRepDegree) throws RemoteException {
+//		File file = FileProcessor.loadFile(pathname);
+//		String fileId = FileProcessor.getFileId(file);
+//		byte[] data = FileProcessor.getData(file);
+//        pool.execute(new StoreFile(config, mdbSocket, fileId, desiredRepDegree, data, replicationStatus));
+//	}
+//
+//	@Override
+//	public void restore(String pathname) throws RemoteException {
+//		File file = FileProcessor.loadFile(pathname);
+//		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
+//	}
+//
+//	@Override
+//	public void delete(String pathname) throws RemoteException {
+//		File file = FileProcessor.loadFile(pathname);
+//		pool.execute(new SendDeleteFile(config, mcSocket, file));
+//	}
+//
+//	@Override
+//	public void state() throws RemoteException {
+//		// TODO Auto-generated method stub
+//		
+//	}
+//
+//	@Override
+//	public void reclaim(int maxDiskSpace) throws RemoteException {
+//		// TODO Auto-generated method stub
+//		
+//	}
 
 }
