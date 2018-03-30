@@ -2,8 +2,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.HashSet;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import utils.Pair;
 import utils.ThreadUtils;
@@ -18,11 +21,22 @@ public class ReplicationStatus implements Serializable {
 	
 	private ConcurrentHashMap<Pair<String, Integer>, Pair<Byte, HashSet<String>>> repDegrees;
 	private transient ObjectOutputStream out;
+	private AtomicLong bytesUsed;
+	private AtomicLong bytesReserved;
 	
 	public ReplicationStatus(String path) {
 		repDegrees = new ConcurrentHashMap<>();
 	    setOutputStream(path);
+	    bytesUsed = new AtomicLong(0);
+	    bytesReserved = new AtomicLong(Long.MAX_VALUE);
 	}
+
+	public Map<Pair<String,Integer>, Pair<Byte, HashSet<String>>> getSortedMap(){
+        return repDegrees.entrySet().stream()
+                        .sorted(Entry.comparingByValue())
+                        .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
+                                (e1, e2) -> e1, LinkedHashMap::new));
+    }
 
 
 	public void decrementLocalCount(String senderId, String fileId, int chunkNo){
@@ -84,5 +98,25 @@ public class ReplicationStatus implements Serializable {
 			}
 		}while(!wasWritten);
 	}
-	
+
+    public Long getBytesUsed() {
+        return bytesUsed.get();
+    }
+
+    public void incrementBytesUsed(long bytesToAdd) {
+		bytesUsed.addAndGet(bytesToAdd);
+    }
+
+    public void decrementBytesUsed(long bytesToSubtract){
+	    System.out.println("Decrementing by: " + bytesToSubtract);
+	    bytesUsed.addAndGet(-bytesToSubtract);
+    }
+
+    public Long getBytesReserved() {
+        return bytesReserved.get();
+    }
+
+    public void setBytesReserved(Long bytesReserved) {
+        this.bytesReserved.set(bytesReserved);
+    }
 }

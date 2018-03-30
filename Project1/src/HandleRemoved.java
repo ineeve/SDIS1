@@ -23,7 +23,6 @@ public class HandleRemoved implements Runnable {
     }
     @Override
     public void run() {
-        System.out.println("Handling removed");
         parsePacket();
         if (senderId.equals(config.getPeerId())) return;
         updateReplicationStatus();
@@ -50,6 +49,7 @@ public class HandleRemoved implements Runnable {
     }
 
     private void waitAndBackup(){
+        System.out.println("Handling removed: " + fileId + "/" + chunkNo);
         ThreadUtils.waitBetween(0, 400);
         Integer numConfirmations = replicationStatus.getNumConfirms(fileId, chunkNo);
         byte desiredRepDeg =  replicationStatus.getDesiredReplicationDeg(fileId, chunkNo);

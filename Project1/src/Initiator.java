@@ -50,6 +50,7 @@ public class Initiator implements Runnable {
 		System.out.println("1. Backup file");
 		System.out.println("2. Restore file");
 		System.out.println("3. Delete file");
+        System.out.println("4. Reclaim disk space");
 		System.out.print("\nOption: ");
 		while (true) {
 			int option = terminal.nextInt();
@@ -72,10 +73,26 @@ public class Initiator implements Runnable {
 		case 3:
 			deleteFileMenu();
 			break;
+		case 4:
+            reclaimSpaceMenu();
 		default:
 			return;
 		}
 	}
+
+	private void reclaimSpaceMenu(){
+        long reservedSpace = -1;
+        do {
+            System.out.println("Reclaim space (bytes): ");
+            try{
+                reservedSpace = terminal.nextLong();
+            }catch(Exception e){
+                System.out.println("Insert positive long integer");
+            }
+        } while(reservedSpace < 0);
+        replicationStatus.setBytesReserved(reservedSpace);
+        pool.execute(new ReclaimDiskSpace(config, replicationStatus));
+    }
 	
 	private void deleteFileMenu() {
 		File file = FileProcessor.loadFileFromTerminal();

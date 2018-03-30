@@ -40,7 +40,6 @@ public class FileProcessor{
     public static File loadFile(String filepath){
         File file = new File(filepath);
         if (!file.exists()){
-            System.out.println("File " + filepath + " does not exist");
             return null;
         }
         if (!file.canRead()){

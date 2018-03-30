@@ -31,7 +31,7 @@ public class PutChunkReceive implements Runnable {
 
 	@Override
 	public void run() {
-		parseReceivedChunk();
+	    parseReceivedChunk();
 	}
 	
 	private void parseReceivedChunk() {
@@ -50,12 +50,12 @@ public class PutChunkReceive implements Runnable {
 			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
 			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
 			try {
-				storeChunk(body,fileId,chunkNo);
-				if(chunksStoredForFile.contains(chunkNo)){
-					System.out.println("chunk already stored");
-				}else{
-					chunksStoredForFile.add(chunkNo);
-				}
+                if(chunksStoredForFile.contains(chunkNo)){
+                    System.out.println("chunk already stored");
+                }else{
+                    chunksStoredForFile.add(chunkNo);
+                    storeChunk(body,fileId,chunkNo);
+                }
 				sendConfirmation(makeStoredPacket(version,fileId,chunkNo), chunkNo);
 			} catch (IOException e) {
 				System.out.format("Failed to store chunk %d of file %s.\n", chunkNo, fileId);
@@ -86,9 +86,16 @@ public class PutChunkReceive implements Runnable {
 	private void storeChunk(String body, String fileId, int chunkNo) throws IOException {
 		String chunkPath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
 		File chunk = new File(chunkPath);
-		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
-		out.writeBytes(body);
-		out.close();
+        if (repStatus.getBytesUsed() + body.length() < repStatus.getBytesReserved()){
+            repStatus.incrementBytesUsed(body.length());
+            DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
+            out.writeBytes(body);
+            out.close();
+            System.out.println("PutchunkReceive: bytes used - " + repStatus.getBytesUsed());
+        }else{
+            System.out.println("No disk space available: " + repStatus.getBytesUsed() + "/" + repStatus.getBytesReserved());
+        }
+
 	}
 	
 }
