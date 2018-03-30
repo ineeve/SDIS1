@@ -18,12 +18,13 @@ public class ReplicationStatusFactory {
 		} catch (FileNotFoundException e) { // no old file found
 			return new ReplicationStatus(path);
 		} catch (Exception e) { // unexpected exception
-		    e.printStackTrace();
+		    System.out.println("Corrupted Replication Status, creating new");
+		    FileProcessor.deleteFile(path);
 		    return new ReplicationStatus(path);
 		} finally {
 		    if(objectinputstream != null){
 		        try {
-					objectinputstream .close();
+					objectinputstream.close();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
