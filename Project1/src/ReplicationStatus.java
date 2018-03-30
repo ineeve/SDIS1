@@ -16,16 +16,24 @@ import utils.ThreadUtils;
 public class ReplicationStatus implements Serializable {
 	private static final long serialVersionUID = -6171144910000784686L;
 	
-	private ConcurrentHashMap<Pair<String, Integer>, Pair<Integer, HashSet<String>>> repDegrees
-				= new ConcurrentHashMap<Pair<String, Integer>, Pair<Integer, HashSet<String>>>();
+	private ConcurrentHashMap<Pair<String, Integer>, Pair<Byte, HashSet<String>>> repDegrees;
 	private transient ObjectOutputStream out;
 	
 	public ReplicationStatus(String path) {
-		setOutputStream(path);
+		repDegrees = new ConcurrentHashMap<>();
+	    setOutputStream(path);
 	}
-	
+
+
+	public void decrementLocalCount(String senderId, String fileId, int chunkNo){
+		repDegrees.get(new Pair(fileId,chunkNo)).getRight().remove(senderId);
+	}
+	public Byte getDesiredReplicationDeg(String fileId, Integer chunkNo){
+	    return repDegrees.get(new Pair(fileId,chunkNo)).getLeft();
+    }
+
 	public int getNumConfirms(String fileId, int chunkNo) {
-		Pair<Integer,HashSet<String>> pair = repDegrees.get(new Pair<String, Integer>(fileId, chunkNo));
+		Pair<Byte, HashSet<String>> pair = repDegrees.get(new Pair<>(fileId, chunkNo));
 		if (pair == null) return 0;
 		HashSet<String> peerIds = pair.getRight();
 		if (peerIds == null) {
@@ -34,11 +42,11 @@ public class ReplicationStatus implements Serializable {
 		return peerIds.size();
 	}
 
-	public void putchunk_setDesiredReplicationDeg(int repDeg, String fileId, Integer chunkNo) {
+	public void putchunk_setDesiredReplicationDeg(byte repDeg, String fileId, Integer chunkNo) {
 	    System.out.println("ReplicationStatus: Saving desired replication degree for " + chunkNo);
 		Pair<String, Integer> key = new Pair<>(fileId, chunkNo);
 		repDegrees.putIfAbsent(key, new Pair<>(repDeg, new HashSet<>()));
-		Pair<Integer, HashSet<String>> entry = repDegrees.get(key);
+		Pair<Byte, HashSet<String>> entry = repDegrees.get(key);
 		entry.setLeft(repDeg);
 		tryToWrite();
 
@@ -46,7 +54,7 @@ public class ReplicationStatus implements Serializable {
 	
 	public void stored_addPeerId(String peerId, String fileId, Integer chunkNo) {
 		Pair<String, Integer> key = new Pair<>(fileId, chunkNo);
-		repDegrees.putIfAbsent(key, new Pair<>(0, new HashSet<>()));
+		repDegrees.putIfAbsent(key, new Pair<>((byte)0, new HashSet<>()));
 		HashSet<String> peerIds = repDegrees.get(key).getRight();
 		peerIds.add(peerId);
 		tryToWrite();
