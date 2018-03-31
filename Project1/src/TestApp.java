@@ -24,8 +24,8 @@ public class TestApp {
 	        // Calling the remote method using the obtained object 
 	        invokeServer(stub);
 	    } catch (Exception e) {
-	        System.err.println("Client exception: " + e.toString()); 
-	        e.printStackTrace(); 
+	        System.err.println("Client exception: " + e.toString());
+	        e.printStackTrace();
 	    } 
 	}
 
@@ -43,7 +43,8 @@ public class TestApp {
 		case RECLAIM:
 			stub.reclaim(maxDiskSpace);
 		case STATE:
-			stub.state();
+			PeerState state = stub.state();
+			state.present();
 			break;
 		default:
 			System.err.println("TestApp: Invalid Operation.");

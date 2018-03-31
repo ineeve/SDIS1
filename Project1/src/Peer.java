@@ -70,7 +70,7 @@ public class Peer implements RMIInterface {
 	}
 
 	private void createFolders(){
-		new File( config.getPeerDir() + "data/").mkdirs();
+		new File(config.getPeerDir() + "data/").mkdirs();
 		new File(config.getPeerDir() + "restored/").mkdirs();
 		new File(config.getPeerDir() + "stored/").mkdirs();
 	}
@@ -138,9 +138,8 @@ public class Peer implements RMIInterface {
 	}
 
 	@Override
-	public void state() throws RemoteException {
-		// TODO Auto-generated method stub
-		
+	public PeerState state() throws RemoteException {
+		return null;
 	}
 
 	@Override
