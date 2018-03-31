@@ -58,6 +58,10 @@ public class WatchStored implements Runnable{
                         break;
                     }
                 }
+                if (mcSocket == null){
+                    System.err.println("Watch: critical error detected");
+                    System.exit(-1);
+                }
                 if(!stop) reclaimSpace(deletedFilePath);
             }
             boolean valid = eventKey.reset();
@@ -68,6 +72,7 @@ public class WatchStored implements Runnable{
     }
 
     private void reclaimSpace(Path filePath){
+
         pool.execute(new RemovedSend(config, mcSocket, filePath));
     }
 }

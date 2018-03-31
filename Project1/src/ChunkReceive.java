@@ -1,8 +1,7 @@
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class ChunkReceive implements Runnable{
@@ -10,20 +9,22 @@ public class ChunkReceive implements Runnable{
     private static final String CRLF = "\r\n";
 
     private FilesRestored filesRestored;
+    private ChunksRequested chunksRequested; //hashmap of <file,chunks> requested to restore;
     private DatagramPacket chunkPacket;
     private String fileId;
     private Integer chunkNo;
     private Config config;
 
-    public ChunkReceive(DatagramPacket chunkPacket, FilesRestored filesRestored, Config config){
+    public ChunkReceive(DatagramPacket chunkPacket, FilesRestored filesRestored, Config config, ChunksRequested chunksRequested){
         this.filesRestored = filesRestored;
         this.chunkPacket = chunkPacket;
+        this.chunksRequested = chunksRequested;
         this.config = config;
     }
 	@Override
 	public void run() {
         if (parseReceivedChunk()){
-            if (haveAll() && !filesRestored.wasFileCreated(fileId)){
+            if (haveAll() && !filesRestored.wasFileCreated(fileId) && filesRestored.exists(fileId)){
                 createFile();
             }
         }
@@ -38,6 +39,7 @@ public class ChunkReceive implements Runnable{
         if (senderId.equals(config.getPeerId())) return false;
 		fileId = head[3];
         chunkNo = Integer.parseInt(head[4]);
+        if (!chunksRequested.wasRequested(fileId,chunkNo)) return false;
         if (filesRestored.containsChunk(fileId, chunkNo)) return false;
         String body = splitMessage[1];
         filesRestored.addChunk(fileId, chunkNo, body.getBytes(Charset.forName("ISO_8859_1")));
@@ -52,23 +54,16 @@ public class ChunkReceive implements Runnable{
     }
 
     private void createFile() {
-        filesRestored.setFileCreated(fileId);
-        String outputPath = config.getPeerDir() + "restored/" + fileId;
-        ArrayList<byte[]> fileChunks = filesRestored.getFile(fileId);
+        filesRestored.setFileCreated(fileId,true);
+        Path outputPath = Paths.get(config.getPeerDir() + "restored/" + fileId);
+        ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
         if (fileChunks.size() > 0){
-            FileOutputStream stream;
-            try {
-                stream = new FileOutputStream(outputPath);
-                for( byte[] chunk : fileChunks){
-                    stream.write(chunk);
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            boolean result = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
+            if (result){
+                chunksRequested.clear(fileId);
+                filesRestored.removeFile(fileId);
+                System.out.println("File being restored to " + outputPath);
             }
-
-            System.out.println("File restored to " + outputPath);
         }
     }
     

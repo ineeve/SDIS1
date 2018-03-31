@@ -17,14 +17,22 @@ public class FilesRestored {
         filesInfo = new ConcurrentHashMap<>();
     }
     public void addChunk(String fileId, int chunkNo, byte[] data){
-        System.out.println("FilesRestored: Restored chunk " + chunkNo);
+        System.out.println("FilesRestored: Restored " + fileId + "_" + chunkNo);
         filesRestored.putIfAbsent(fileId, new ConcurrentHashMap<>());
         filesInfo.putIfAbsent(fileId, new Pair<>(false,false));
         filesRestored.get(fileId).putIfAbsent(chunkNo, data);
     }
 
-    public void setFileCreated(String fileId){
-        filesInfo.get(fileId).setRight(true);
+    public boolean exists(String fileId){
+        return filesRestored.containsKey(fileId);
+    }
+
+    public void removeFile(String fileId){
+        filesRestored.remove(fileId);
+    }
+
+    public void setFileCreated(String fileId, Boolean value){
+        filesInfo.get(fileId).setRight(value);
     }
 
     public boolean wasFileCreated(String fileId){
@@ -44,12 +52,17 @@ public class FilesRestored {
         if (chunks == null) return false;
         return chunks.containsKey(chunkNo);
     }
+
     public ArrayList<byte[]> getFile(String fileId){
         ArrayList<byte[]> fileChunks = new ArrayList<>();
         ConcurrentHashMap<Integer,byte[]> hashmap = filesRestored.get(fileId);
-        fileChunks.addAll(hashmap.values());
-        return fileChunks;
+        if (hashmap != null){
+            fileChunks.addAll(hashmap.values());
+            return fileChunks;
+        }
+        return null;
     }
+
     public boolean haveAll(String fileId){
         if(wasLastChunkReceived(fileId)){
             ConcurrentHashMap<Integer,byte[]> chunks = filesRestored.get(fileId);

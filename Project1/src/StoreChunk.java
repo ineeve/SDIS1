@@ -1,3 +1,4 @@
+import utils.FutureBuffer;
 import utils.ThreadUtils;
 
 import java.io.IOException;
@@ -8,25 +9,26 @@ import java.nio.charset.Charset;
 public class StoreChunk implements Runnable {
 
 	private static final String CRLF = "\r\n";
-	
-	private MulticastSocket mdbSocket;
+
+    private FutureBuffer futureBuffer;
+
+    private MulticastSocket mdbSocket;
 	private Config config;
 
 	private String fileId;
 	private int chunkNo;
 	private byte replicationDegree;
-	private byte[] data;
 
 	private ReplicationStatus repStatus;
 
 	public StoreChunk(Config config, MulticastSocket mdbSocket, String fileId, int chunkNo, byte replicationDegree,
-			byte[] data, ReplicationStatus repStatus) {
+                      ReplicationStatus repStatus, FutureBuffer futureBuffer) {
 		this.mdbSocket = mdbSocket;
 		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
 		this.replicationDegree = replicationDegree;
-		this.data = data;
+		this.futureBuffer = futureBuffer;
 		this.repStatus = repStatus;
 	}
 
@@ -37,7 +39,7 @@ public class StoreChunk implements Runnable {
 	}
 
 	private void storeChunk() {
-		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, replicationDegree, data);
+		DatagramPacket chunkPacket = makeChunkPacket(fileId, chunkNo, replicationDegree);
 		int listeningInterval = 1000; // milliseconds
 
 		int numConfirmations = 0;
@@ -66,9 +68,10 @@ public class StoreChunk implements Runnable {
 		System.out.format("Stored %s_%d; Rep Degree: %d/%d\n", fileId, chunkNo, numConfirmations, replicationDegree);
 	}
 
-	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, byte[] data) {
+	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg) {
 		String putChunkMsgStr = "PUTCHUNK " + config.getProtocolVersion() + " " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
 		byte[] putChunkMsgHeader = putChunkMsgStr.getBytes(Charset.forName("ISO_8859_1"));
+		byte[] data = FileProcessor.getDataFromFuture(futureBuffer);
 		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + data.length];
 		for (int i = 0; i < putChunkMsg.length; i++) {
 			if (i < putChunkMsgHeader.length) {

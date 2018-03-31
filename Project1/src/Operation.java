@@ -4,5 +4,6 @@ public enum Operation {
 	RESTORE,
 	DELETE,
 	RECLAIM,
-	STATE
+	STATE,
+    RESTOREENH;
 }
