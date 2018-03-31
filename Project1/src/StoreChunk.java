@@ -45,7 +45,7 @@ public class StoreChunk implements Runnable {
             boolean chunkSent = false;
 			while(!chunkSent){
 				try {
-					System.out.println(String.format("StoreChunk: Sending PUTCHUNK %d", chunkNo));
+					System.out.format("StoreChunk: Sending PUTCHUNK %d\n", chunkNo);
 					mdbSocket.send(chunkPacket);
 					chunkSent = true;
 				}catch(IOException e){
@@ -63,7 +63,7 @@ public class StoreChunk implements Runnable {
 			System.out.println("StoreChunk: Waiting confirmation for chunk " + chunkNo);
 			listeningInterval *= 2;
 		}
-		System.out.println(String.format("Stored %s_%d; Rep Degree: %d/%d", fileId, chunkNo, numConfirmations, replicationDegree));
+		System.out.format("Stored %s_%d; Rep Degree: %d/%d\n", fileId, chunkNo, numConfirmations, replicationDegree);
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg, byte[] data) {

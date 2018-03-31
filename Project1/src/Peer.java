@@ -122,6 +122,7 @@ public class Peer implements RMIInterface {
 		File file = FileProcessor.loadFile(pathname);
 		String fileId = FileProcessor.getFileId(file);
 		byte[] data = FileProcessor.getData(file);
+		repStatus.backupFile(pathname, fileId, desiredRepDegree);
         pool.execute(new StoreFile(config, mdbSocket, fileId, desiredRepDegree, data, repStatus));
 	}
 
@@ -139,7 +140,7 @@ public class Peer implements RMIInterface {
 
 	@Override
 	public PeerState state() throws RemoteException {
-		return null;
+		return new PeerState(repStatus);
 	}
 
 	@Override
