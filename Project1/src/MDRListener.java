@@ -19,10 +19,10 @@ public class MDRListener implements Runnable{
     private FilesRestored filesRestored;
     private ChunksRequested chunksRequested;
 
-    public MDRListener(Config config, ChunksRequested chunksRequested){
+    public MDRListener(Config config, ChunksRequested chunksRequested, FilesRestored filesRestored){
         this.config = config;
         this.chunksRequested = chunksRequested;
-        filesRestored = new FilesRestored();
+        this.filesRestored = filesRestored;
         try {
 			mdrSocket = new MulticastSocket(config.getMdrPort());
 			mdrSocket.joinGroup(config.getMdrIP());

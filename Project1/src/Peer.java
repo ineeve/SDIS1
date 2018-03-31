@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -14,6 +15,7 @@ import java.util.concurrent.Executors;
 
 public class Peer implements RMIInterface {
 
+	private int TCP_PORT;
 	private ExecutorService pool = Executors.newCachedThreadPool();
 
 	private MCListener mcListener;
@@ -26,9 +28,11 @@ public class Peer implements RMIInterface {
 	// SHARED
 	private ReplicationStatus repStatus;
 	private Set<String> filesToNotWatch;
-	private final ChunksRequested chunksRequested;
+	private ChunksRequested chunksRequested;
+	private FilesRestored filesRestored;
 	
 	private Config config;
+	private Thread tcpServer;
 	
 	public Peer(String[] args) throws RemoteException {
 		this.chunksRequested = new ChunksRequested();
@@ -37,10 +41,11 @@ public class Peer implements RMIInterface {
 		createSockets();
 		repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
 		filesToNotWatch = new ConcurrentHashMap().newKeySet();
+		filesRestored = new FilesRestored();
 
 		mcListener = new MCListener(config, repStatus, filesToNotWatch);
 		mdbListener = new MDBListener(config, repStatus, filesToNotWatch);
-		mdrListener = new MDRListener(config, chunksRequested);
+		mdrListener = new MDRListener(config, chunksRequested, filesRestored);
 
 		Thread mdbListenerThr = new Thread(mcListener);
 		Thread mcListenerThr = new Thread(mdbListener);
@@ -49,6 +54,16 @@ public class Peer implements RMIInterface {
 		mdbListenerThr.start();
 		mcListenerThr.start();
 		mdrListenerThr.start();
+
+		Random rnd = new Random();
+		TCP_PORT = (rnd.nextInt() % 30000) + 2000;
+	}
+
+	private void initiateTCPServer() {
+		if (tcpServer == null){
+			tcpServer = new Thread(new TCPServer(TCP_PORT, chunksRequested, filesRestored));
+			tcpServer.start();
+		}
 	}
 
 	private void createSockets() {
@@ -126,6 +141,13 @@ public class Peer implements RMIInterface {
 	}
 
 	@Override
+	public void restoreEnh(String pathname) throws RemoteException {
+		File file = FileProcessor.loadFile(pathname);
+		initiateTCPServer();
+		pool.execute(new SendRestoreFileEnh(config, mcSocket, file, chunksRequested, TCP_PORT));
+	}
+
+	@Override
 	public void delete(String pathname) throws RemoteException {
 		File file = FileProcessor.loadFile(pathname);
 		pool.execute(new SendDeleteFile(config, mcSocket, file));
@@ -140,7 +162,8 @@ public class Peer implements RMIInterface {
 	public void reclaim(long maxDiskSpace) throws RemoteException {
 		repStatus.setBytesReserved(maxDiskSpace * 1000);
 		pool.execute(new ReclaimDiskSpace(config, repStatus));
-		
 	}
+
+
 
 }

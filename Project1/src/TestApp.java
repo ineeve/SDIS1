@@ -46,6 +46,9 @@ public class TestApp {
 			PeerState state = stub.state();
 			state.present();
 			break;
+		case RESTOREENH:
+			stub.restoreEnh(pathname);
+			break;
 		default:
 			System.err.println("TestApp: Invalid Operation.");
 		}
@@ -62,6 +65,7 @@ public class TestApp {
 		switch (operation) {
 		case BACKUP:
 		case RESTORE:
+        case RESTOREENH:
 		case DELETE:
 			pathname = args[2];
 			break;

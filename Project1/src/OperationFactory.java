@@ -7,6 +7,8 @@ public class OperationFactory {
 			return Operation.BACKUP;
 		case "RESTORE":
 			return Operation.RESTORE;
+		case "RESTOREENH":
+			return Operation.RESTOREENH;
 		case "DELETE":
 			return Operation.DELETE;
 		case "RECLAIM":
