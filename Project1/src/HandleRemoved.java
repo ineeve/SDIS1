@@ -1,9 +1,12 @@
+import utils.FutureBuffer;
 import utils.ThreadUtils;
 
 import java.io.File;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.concurrent.Future;
 
 public class HandleRemoved implements Runnable {
 
@@ -58,9 +61,11 @@ public class HandleRemoved implements Runnable {
             String chunkName = FileProcessor.createChunkName(fileId,chunkNo);
             File chunkFile = FileProcessor.loadFile(config.getPeerDir() + "stored/"+ chunkName);
             if (chunkFile != null){
-                byte[] data = FileProcessor.getData(chunkFile);
-                if (data != null){
-                    Thread storeChunkThread = new Thread(new StoreChunk(config, mdbSocket,fileId,chunkNo,desiredRepDeg,data,replicationStatus));
+                ByteBuffer buffer = ByteBuffer.allocate(0);
+                Future<Integer> future = FileProcessor.getDataAsync(chunkFile,buffer);
+                if (future != null){
+                    Thread storeChunkThread = new Thread(new StoreChunk(config,mdbSocket,fileId,chunkNo,
+                            desiredRepDeg, replicationStatus, new FutureBuffer(buffer,future)));
                     storeChunkThread.start();
                 }
             }

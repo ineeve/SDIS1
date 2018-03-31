@@ -68,6 +68,7 @@ public class WatchStored implements Runnable{
     }
 
     private void reclaimSpace(Path filePath){
+        if (config == null || mcSocket == null || filePath == null) return;
         pool.execute(new RemovedSend(config, mcSocket, filePath));
     }
 }

@@ -1,16 +1,19 @@
+import utils.FutureBuffer;
+
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.*;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.Scanner;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class FileProcessor{
 
@@ -20,8 +23,76 @@ public class FileProcessor{
         return fileId + "_" + chunkNo + ".out";
     }
 
+    /**
+     * Writes a file asynchronously
+     * @param path output path to write the file into
+     * @param chunksToWrite ArrayList with all the chunks that make the file
+     * @param chunkSizes Max size of each chunk
+     * @return true if file is being created, false otherwise.
+     */
+    public static boolean writeFileAsync(Path path, ArrayList<byte[]> chunksToWrite, int chunkSizes){
+        AsynchronousFileChannel fileChannel = null;
+        try {
+            fileChannel = AsynchronousFileChannel.open(path,StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        if (chunksToWrite.size() > 0){
+            long position = 0;
+            for (int i = 0; i < chunksToWrite.size(); i++){
+                byte[] chunkToWrite = chunksToWrite.get(i);
+                ByteBuffer buffer = ByteBuffer.allocate(chunkSizes);
+                buffer.put(chunkToWrite);
+                buffer.flip();
+                fileChannel.write(buffer, position);
+                position += chunkToWrite.length;
+                buffer.clear();
+            }
+            return true;
+        }
+        return false;
+    }
 
-    public static byte[] getData(File file){
+    public static boolean writeSingleChunkAsync(Path path, byte[] chunkToWrite){
+        AsynchronousFileChannel fileChannel = null;
+        try {
+            fileChannel = AsynchronousFileChannel.open(path,StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        ByteBuffer buffer = ByteBuffer.allocate(chunkToWrite.length);
+        long position = 0;
+        buffer.put(chunkToWrite);
+        buffer.flip();
+        fileChannel.write(buffer, position);
+        buffer.clear();
+
+        return true;
+    }
+
+
+    public static byte[] getDataFromFuture(FutureBuffer futureBuffer){
+        ByteBuffer buffer = futureBuffer.getBuffer();
+        try {
+            futureBuffer.getFuture().get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        buffer.flip();
+        byte[] data = new byte[buffer.limit()];
+        buffer.get(data);
+        buffer.clear();
+        return data;
+    }
+
+    public static ArrayList<FutureBuffer> readFileChunksAsync(File file, int chunkSize){
+        int numChunks = (int) Math.ceil(file.length() / (double)chunkSize);
+        ArrayList<FutureBuffer> futureBuffers = new ArrayList<>(numChunks);
+        AsynchronousFileChannel fileChannel;
         Path path;
         try {
             path = Paths.get(file.getCanonicalPath());
@@ -30,12 +101,41 @@ public class FileProcessor{
             return null;
         }
         try {
-            return Files.readAllBytes(path);
+            fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
-        return null;
+        int bufferPosition = 0;
+        for(int i = 0; i < numChunks; i++){
+            ByteBuffer newByteBuffer = ByteBuffer.allocate(chunkSize);
+            Future<Integer> newFuture = fileChannel.read(newByteBuffer, bufferPosition);
+            futureBuffers.add(new FutureBuffer(newByteBuffer,newFuture));
+            bufferPosition += chunkSize;
+        }
+        return futureBuffers;
     }
+
+
+    public static Future<Integer> getDataAsync(File file, ByteBuffer buffer){
+		Path path;
+        AsynchronousFileChannel fileChannel;
+		try {
+			path = Paths.get(file.getCanonicalPath());
+		} catch (IOException e) {
+			System.out.println("I do not have file: " + file.getName());
+			return null;
+		}
+        try {
+            fileChannel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+        } catch (IOException e) {
+		    e.printStackTrace();
+            return null;
+        }
+        buffer = ByteBuffer.allocate((int)file.length());
+		return fileChannel.read(buffer,0);
+    }
+
 
     public static File loadFile(String filepath){
         File file = new File(filepath);
@@ -49,18 +149,6 @@ public class FileProcessor{
         return file;
     }
 
-    public static File loadFileFromTerminal(){
-        File file;
-
-		//get filename and make sure it exists
-		do {
-			System.out.print("\nFilepath: ");
-			String filepath = terminal.next();
-			file = new File(filepath);
-			file = loadFile(filepath);
-        } while (file == null);
-        return file;
-    }
     public static String getFileId(File file){
 		String filename = file.getName();
 		BasicFileAttributes attr = null;

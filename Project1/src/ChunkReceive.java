@@ -3,6 +3,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class ChunkReceive implements Runnable{
@@ -23,7 +25,7 @@ public class ChunkReceive implements Runnable{
 	@Override
 	public void run() {
         if (parseReceivedChunk()){
-            if (haveAll() && !filesRestored.wasFileCreated(fileId)){
+            if (haveAll() && !filesRestored.wasFileCreated(fileId) && filesRestored.exists(fileId)){
                 createFile();
             }
         }
@@ -52,23 +54,15 @@ public class ChunkReceive implements Runnable{
     }
 
     private void createFile() {
-        filesRestored.setFileCreated(fileId);
-        String outputPath = config.getPeerDir() + "restored/" + fileId;
-        ArrayList<byte[]> fileChunks = filesRestored.getFile(fileId);
+        filesRestored.setFileCreated(fileId,true);
+        Path outputPath = Paths.get(config.getPeerDir() + "restored/" + fileId);
+        ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
         if (fileChunks.size() > 0){
-            FileOutputStream stream;
-            try {
-                stream = new FileOutputStream(outputPath);
-                for( byte[] chunk : fileChunks){
-                    stream.write(chunk);
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+            boolean result = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
+            if (result){
+                filesRestored.removeFile(fileId);
+                System.out.println("File being restored to " + outputPath);
             }
-
-            System.out.println("File restored to " + outputPath);
         }
     }
     

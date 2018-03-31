@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,15 +55,13 @@ public class PutChunkReceive implements Runnable {
 			chunksStored.putIfAbsent(fileId, new ArrayList<>());
 			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
 			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
-			try {
-                if(!chunksStoredForFile.contains(chunkNo)){
-                    chunksStoredForFile.add(chunkNo);
-                    storeChunk(body,fileId,chunkNo);
-                }
-				sendConfirmation(makeStoredPacket(version,fileId,chunkNo), chunkNo);
-			} catch (IOException e) {
-				System.out.format("Failed to store chunk %d of file %s.\n", chunkNo, fileId);
+
+			if(!chunksStoredForFile.contains(chunkNo)){
+				chunksStoredForFile.add(chunkNo);
+				storeChunk(body,fileId,chunkNo);
 			}
+			sendConfirmation(makeStoredPacket(version,fileId,chunkNo), chunkNo);
+
 	}
 
 	private void sendConfirmation(DatagramPacket storedPacket, int chunkNo) {
@@ -86,14 +85,11 @@ public class PutChunkReceive implements Runnable {
 		return packet;
 	}
 	
-	private void storeChunk(String body, String fileId, int chunkNo) throws IOException {
+	private void storeChunk(String body, String fileId, int chunkNo) {
 		String chunkPath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
-		File chunk = new File(chunkPath);
         if (repStatus.getBytesUsed() + body.length() < repStatus.getBytesReserved()){
             repStatus.incrementBytesUsed(body.length());
-            DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(chunk)));
-            out.writeBytes(body);
-            out.close();
+            FileProcessor.writeSingleChunkAsync(Paths.get(chunkPath), body.getBytes(Charset.forName("ISO_8859_1")));
         }else{
             System.out.println("No disk space available: " + repStatus.getBytesUsed() + "/" + repStatus.getBytesReserved());
         }
