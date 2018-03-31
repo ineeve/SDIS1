@@ -17,9 +17,11 @@ public class MDRListener implements Runnable{
 
     // maps <fileId, <chunkNo, chunk data>>
     private FilesRestored filesRestored;
+    private ChunksRequested chunksRequested;
 
-    public MDRListener(Config config){
+    public MDRListener(Config config, ChunksRequested chunksRequested){
         this.config = config;
+        this.chunksRequested = chunksRequested;
         filesRestored = new FilesRestored();
         try {
 			mdrSocket = new MulticastSocket(config.getMdrPort());
@@ -46,7 +48,7 @@ public class MDRListener implements Runnable{
 			e.printStackTrace();
         }
         if (Messages.isChunk(chunkPacket)){
-            pool.execute(new ChunkReceive(chunkPacket, filesRestored, config));
+            pool.execute(new ChunkReceive(chunkPacket, filesRestored, config, chunksRequested));
         }else{
             System.out.println("Caught unhandled message in MDRListener");
         }

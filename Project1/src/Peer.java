@@ -45,7 +45,7 @@ public class Peer implements RMIInterface {
 
 		mcListener = new MCListener(config, repStatus, filesToNotWatch);
 		mdbListener = new MDBListener(config, repStatus, filesToNotWatch);
-		mdrListener = new MDRListener(config);
+		mdrListener = new MDRListener(config, chunksRequested);
 
 		Thread mdbListenerThr = new Thread(mcListener);
 		Thread mcListenerThr = new Thread(mdbListener);

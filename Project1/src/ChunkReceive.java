@@ -12,14 +12,16 @@ public class ChunkReceive implements Runnable{
     private static final String CRLF = "\r\n";
 
     private FilesRestored filesRestored;
+    private ChunksRequested chunksRequested; //hashmap of <file,chunks> requested to restore;
     private DatagramPacket chunkPacket;
     private String fileId;
     private Integer chunkNo;
     private Config config;
 
-    public ChunkReceive(DatagramPacket chunkPacket, FilesRestored filesRestored, Config config){
+    public ChunkReceive(DatagramPacket chunkPacket, FilesRestored filesRestored, Config config, ChunksRequested chunksRequested){
         this.filesRestored = filesRestored;
         this.chunkPacket = chunkPacket;
+        this.chunksRequested = chunksRequested;
         this.config = config;
     }
 	@Override
@@ -40,6 +42,7 @@ public class ChunkReceive implements Runnable{
         if (senderId.equals(config.getPeerId())) return false;
 		fileId = head[3];
         chunkNo = Integer.parseInt(head[4]);
+        if (!chunksRequested.wasRequested(fileId,chunkNo)) return false;
         if (filesRestored.containsChunk(fileId, chunkNo)) return false;
         String body = splitMessage[1];
         filesRestored.addChunk(fileId, chunkNo, body.getBytes(Charset.forName("ISO_8859_1")));
@@ -60,6 +63,7 @@ public class ChunkReceive implements Runnable{
         if (fileChunks.size() > 0){
             boolean result = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
             if (result){
+                chunksRequested.clear(fileId);
                 filesRestored.removeFile(fileId);
                 System.out.println("File being restored to " + outputPath);
             }
