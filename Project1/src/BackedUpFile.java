@@ -1,7 +1,6 @@
-import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BackedUpFile implements Serializable {
+public class BackedUpFile {
 
 	private String pathname;
 	private String fileId;
