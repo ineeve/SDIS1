@@ -18,12 +18,11 @@ public class SendRestoreFile implements Runnable{
 
 
     public SendRestoreFile(Config config, MulticastSocket mcSocket,File file, ChunksRequested chunksRequested ){
-        FileProcessor fileProcessor = new FileProcessor();
         this.chunksRequested = chunksRequested;
         this.config = config;
         this.mcSocket = mcSocket;
         this.file = file;
-        this.fileId = fileProcessor.getFileId(file);
+        this.fileId = FileProcessor.getFileId(file);
     }
 
 
