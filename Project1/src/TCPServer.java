@@ -12,22 +12,15 @@ public class TCPServer implements Runnable{
 
     private ChunksRequested chunksRequested;
     private FilesRestored filesRestored;
+    private Config config;
 
-    public TCPServer(int portNumber, ChunksRequested chunksRequested, FilesRestored filesRestored){
+    public TCPServer(int portNumber, Config config, ChunksRequested chunksRequested, FilesRestored filesRestored){
         this.portNumber = portNumber;
         this.chunksRequested = chunksRequested;
         this.filesRestored = filesRestored;
+        this.config = config;
     }
 
-    private void createTcpServer() {
-        try {
-            serverSocket = new ServerSocket(portNumber);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-    }
 
     private void createServerSocket(){
         try {
@@ -42,7 +35,7 @@ public class TCPServer implements Runnable{
             Socket clientSocket;
             try {
                 clientSocket = serverSocket.accept();
-                pool.execute(new AcceptClientConnection(clientSocket,chunksRequested,filesRestored));
+                pool.execute(new AcceptClientConnection(config, clientSocket,chunksRequested,filesRestored));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -53,7 +46,6 @@ public class TCPServer implements Runnable{
 
     @Override
     public void run() {
-        createTcpServer();
         createServerSocket();
         receiveClientConnections();
     }

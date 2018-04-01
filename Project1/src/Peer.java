@@ -56,12 +56,12 @@ public class Peer implements RMIInterface {
 		mdrListenerThr.start();
 
 		Random rnd = new Random();
-		TCP_PORT = (rnd.nextInt() % 30000) + 2000;
+		TCP_PORT = 4444;
 	}
 
 	private void initiateTCPServer() {
 		if (tcpServer == null){
-			tcpServer = new Thread(new TCPServer(TCP_PORT, chunksRequested, filesRestored));
+			tcpServer = new Thread(new TCPServer(TCP_PORT, config, chunksRequested, filesRestored));
 			tcpServer.start();
 		}
 	}
@@ -123,8 +123,7 @@ public class Peer implements RMIInterface {
 	         registry.rebind(String.format("Peer_%s", peer.config.getPeerId()), stub);
 	         System.out.println("Server ready"); 
 	      } catch (Exception e) { 
-	         System.err.println("Server exception: " + e.toString()); 
-	         e.printStackTrace(); 
+	         System.err.println("Server exception: Run rmiregistry on bin folder");
 	      }
 	}
 

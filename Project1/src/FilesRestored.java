@@ -1,5 +1,6 @@
 import utils.Pair;
 
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 
@@ -55,9 +56,10 @@ public class FilesRestored {
 
     public ArrayList<byte[]> getFile(String fileId){
         ArrayList<byte[]> fileChunks = new ArrayList<>();
-        ConcurrentHashMap<Integer,byte[]> hashmap = filesRestored.get(fileId);
-        if (hashmap != null){
-            fileChunks.addAll(hashmap.values());
+        ConcurrentHashMap<Integer,byte[]> hashMap = filesRestored.get(fileId);
+        if (hashMap != null){
+            TreeMap<Integer, byte[]> sortedMap = new TreeMap<>(hashMap);
+            fileChunks.addAll(sortedMap.values());
             return fileChunks;
         }
         return null;

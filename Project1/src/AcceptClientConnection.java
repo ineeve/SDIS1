@@ -1,8 +1,12 @@
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class AcceptClientConnection implements Runnable {
 
@@ -11,65 +15,74 @@ public class AcceptClientConnection implements Runnable {
     private ChunksRequested chunksRequested;
     private FilesRestored filesRestored;
 
+    private Config config;
     private Socket clientSocket;
-    private BufferedReader in;
-    private StringBuilder messageReceived;
+    private String fileId;
+    private int chunkNo;
+    private byte[] bytesReceived;
 
-    public AcceptClientConnection(Socket clientSocket, ChunksRequested chunksRequested, FilesRestored filesRestored){
+    public AcceptClientConnection(Config config, Socket clientSocket, ChunksRequested chunksRequested, FilesRestored filesRestored){
         this.clientSocket = clientSocket;
         this.chunksRequested = chunksRequested;
         this.filesRestored = filesRestored;
-        messageReceived = new StringBuilder();
-    }
-
-    private String readLine(){
-        String inputLine = null;
-        try {
-            inputLine = in.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
-        return inputLine;
-    }
-
-    private void appendInput(String inputLine){
-        System.out.println("AcceptClientConnection " + inputLine);
-        messageReceived.append(inputLine);
+        this.config = config;
     }
 
     @Override
     public void run() {
+        InputStream in = null;
         try {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            in = clientSocket.getInputStream();
         } catch (IOException e) {
             e.printStackTrace();
-            return;
         }
-        String inputLine;
-
-
-        while ( (inputLine = readLine()) != null){
-            appendInput(inputLine);
+        bytesReceived = new byte[Config.MAX_CHUNK_SIZE+100];
+        try {
+            in.read(bytesReceived, 0, bytesReceived.length);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        parseReceivedChunk();
+        if(parseReceivedChunk()){
+            System.out.println("Chunk " + chunkNo + " parsed successfully");
+            if (filesRestored.haveAll(fileId)){
+                System.out.println("Have all chunks");
+                if (!filesRestored.wasFileCreated(fileId) && filesRestored.exists(fileId)){
+                    createFile();
+                }
+            }
+        }
 
     }
 
     private boolean parseReceivedChunk(){
-        String msg = messageReceived.toString().trim();
+        String msg = new String(bytesReceived, Charset.forName("ISO_8859_1")).trim();
         String crlf = new String(CRLF);
         String[] splitMessage = msg.split(crlf + crlf);
         String head[] = splitMessage[0].split("\\s+");
-        String fileId = head[3];
-        int chunkNo = Integer.parseInt(head[4]);
+        fileId = head[3];
+        chunkNo = Integer.parseInt(head[4]);
         if (!chunksRequested.wasRequested(fileId,chunkNo)) return false;
         if (filesRestored.containsChunk(fileId, chunkNo)) return false;
         byte[] body = splitMessage[1].getBytes(Charset.forName("ISO_8859_1"));
         filesRestored.addChunk(fileId, chunkNo, body);
+
         if (body.length < Config.MAX_CHUNK_SIZE){
             filesRestored.setReceivedLastChunk(fileId);
         }
         return true;
+    }
+
+    private void createFile() {
+        filesRestored.setFileCreated(fileId,true);
+        Path outputPath = Paths.get(config.getPeerDir() + "restored/" + fileId);
+        ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
+        if (fileChunks.size() > 0){
+            boolean result = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
+            if (result){
+                chunksRequested.clear(fileId);
+                filesRestored.removeFile(fileId);
+                System.out.println("File being restored to " + outputPath);
+            }
+        }
     }
 }
