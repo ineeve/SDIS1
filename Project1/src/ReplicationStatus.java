@@ -24,6 +24,8 @@ public class ReplicationStatus implements Serializable {
 	private AtomicLong bytesUsed;
 	private AtomicLong bytesReserved;
 	
+	private ArrayList<BackedUpFile> backedUpFiles = new ArrayList<BackedUpFile>();
+	
 	public ReplicationStatus(String path) {
 		repDegrees = new ConcurrentHashMap<>();
 	    setOutputStream(path);
@@ -118,4 +120,20 @@ public class ReplicationStatus implements Serializable {
     public void setBytesReserved(Long bytesReserved) {
         this.bytesReserved.set(bytesReserved);
     }
+
+	public void backupFile(String pathname, String fileId, byte desiredRepDegree) {
+		backedUpFiles.add(new BackedUpFile(pathname, fileId, desiredRepDegree));
+	}
+
+	public void setNumChunks(String fileId, int chunkNo) {
+		for (BackedUpFile file : backedUpFiles) {
+			if (file.getFileId() == fileId) {
+				file.initChunks(chunkNo);
+			}
+		}
+	}
+
+	public ArrayList<BackedUpFile> getFiles() {
+		return backedUpFiles;
+	}
 }

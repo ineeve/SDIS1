@@ -53,6 +53,7 @@ public class StoreFile implements Runnable {
 			pool.execute(new StoreChunk(config, mdbSocket, fileId, chunkNo, replicationDegree, repStatus, filePortion));
 			chunkNo++;
 		}
+		repStatus.setNumChunks(fileId, chunkNo);
 	}
 
 }

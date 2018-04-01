@@ -55,7 +55,7 @@ public class TestApp {
 	}
 
 	private static void parseArgs(String[] args) {
-		if (args.length < 3) {
+		if (args.length < 2) {
 			printUsage();
 			System.exit(1);
 		}
@@ -67,9 +67,17 @@ public class TestApp {
 		case RESTORE:
         case RESTOREENH:
 		case DELETE:
+			if (args.length < 3) {
+				printUsage();
+				System.exit(1);
+			}
 			pathname = args[2];
 			break;
 		case RECLAIM:
+			if (args.length < 3) {
+				printUsage();
+				System.exit(1);
+			}
 			maxDiskSpace = Long.parseLong(args[2]);
 			break;
 		case STATE:

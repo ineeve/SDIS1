@@ -154,7 +154,7 @@ public class Peer implements RMIInterface {
 
 	@Override
 	public PeerState state() throws RemoteException {
-		return null;
+		return new PeerState(repStatus);
 	}
 
 	@Override
