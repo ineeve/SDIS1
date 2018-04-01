@@ -1,9 +1,9 @@
-import java.io.BufferedReader;
+import utils.Pair;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.Socket;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class AcceptClientConnection implements Runnable {
     private Socket clientSocket;
     private String fileId;
     private int chunkNo;
-    private byte[] bytesReceived;
+    private byte[] packetReceived;
 
     public AcceptClientConnection(Config config, Socket clientSocket, ChunksRequested chunksRequested, FilesRestored filesRestored){
         this.clientSocket = clientSocket;
@@ -37,12 +37,29 @@ public class AcceptClientConnection implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        bytesReceived = new byte[Config.MAX_CHUNK_SIZE+100];
+        byte[] bytesReceived = new byte[Config.MAX_CHUNK_SIZE+1000];
+        int numBytesRead = 0;
+        int totalBytesRead = 0;
+        ArrayList<Pair<byte[],Integer>> bytesReceivedArray = new ArrayList<>();
         try {
-            in.read(bytesReceived, 0, bytesReceived.length);
+            while((numBytesRead = in.read(bytesReceived)) != -1){
+                totalBytesRead += numBytesRead;
+                bytesReceivedArray.add(new Pair(bytesReceived, numBytesRead));
+                bytesReceived = new byte[Config.MAX_CHUNK_SIZE+1000];
+            }
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(-1);
         }
+        System.out.println("Total Read: " + totalBytesRead);
+        packetReceived = new byte[totalBytesRead];
+        int position = 0;
+        for(Pair<byte[],Integer> someBytes : bytesReceivedArray){
+            System.arraycopy(someBytes.getLeft(),0, packetReceived, position, someBytes.getRight());
+            position += someBytes.getRight();
+        }
+
+
         if(parseReceivedChunk()){
             System.out.println("Chunk " + chunkNo + " parsed successfully");
             if (filesRestored.haveAll(fileId)){
@@ -56,7 +73,7 @@ public class AcceptClientConnection implements Runnable {
     }
 
     private boolean parseReceivedChunk(){
-        String msg = new String(bytesReceived, Charset.forName("ISO_8859_1"));
+        /*String msg = new String(bytesReceived, Charset.forName("ISO_8859_1"));
         String crlf = new String(CRLF);
         String[] splitMessage = msg.split(crlf + crlf);
         String head[] = splitMessage[0].split("\\s+");
@@ -68,6 +85,21 @@ public class AcceptClientConnection implements Runnable {
         filesRestored.addChunk(fileId, chunkNo, body);
 
         if (body.length < Config.MAX_CHUNK_SIZE){
+            filesRestored.setReceivedLastChunk(fileId);
+        }
+        return true;*/
+        String msg = new String(packetReceived, StandardCharsets.ISO_8859_1);
+        String crlf = new String(CRLF);
+        String[] splitMessage = msg.split(crlf + crlf);
+        String head[] = splitMessage[0].split("\\s+");
+        fileId = head[3];
+        chunkNo = Integer.parseInt(head[4]);
+        if (!chunksRequested.wasRequested(fileId,chunkNo)) return false;
+        if (filesRestored.containsChunk(fileId, chunkNo)) return false;
+        String body = splitMessage[1];
+        System.out.println("Chunk " + chunkNo + " ;Body length: " + body.length());
+        filesRestored.addChunk(fileId, chunkNo, body.getBytes(StandardCharsets.ISO_8859_1));
+        if (body.length() < Config.MAX_CHUNK_SIZE){
             filesRestored.setReceivedLastChunk(fileId);
         }
         return true;

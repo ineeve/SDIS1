@@ -82,7 +82,7 @@ public class GetChunkReceive implements Runnable {
 			e.printStackTrace();
 		}
 		try {
-		    System.out.println("GetChunk Received: using TCP");
+		    System.out.println("GetChunk Received: sent chunk with bytes: " + data.length);
 			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			byte[] tcpPacket = makeByteArrayPacket(data);
 			outToServer.write(tcpPacket);
@@ -109,18 +109,16 @@ public class GetChunkReceive implements Runnable {
 
 	}
 
-	private byte[] makeByteArrayPacket(byte[] data){
-		String msgStr = String.format("CHUNK 2.0 %s %s %d %s%s", config.getPeerId(), fileId, chunkNo, CRLF, CRLF);
-		msgStr += new String(data, Charset.forName("ISO_8859_1"));
-		return msgStr.getBytes(Charset.forName("ISO_8859_1"));
+	private byte[] makeByteArrayPacket(byte[] body){
+        byte[] header = Messages.getChunkHeader(fileId,chunkNo);
+        byte[] fullPacket = new byte[header.length + body.length];
+        System.arraycopy(header,0,fullPacket,0,header.length);
+        System.arraycopy(body,0,fullPacket,header.length,body.length);
+		return fullPacket;
 	}
 
 	private DatagramPacket makeDatagramPacket(byte[] body) {
-		byte[] header = Messages.getChunkHeader(fileId,chunkNo);
-		byte[] fullPacket = new byte[header.length + body.length];
-		System.arraycopy(header,0,fullPacket,0,header.length);
-		System.arraycopy(body,0,fullPacket,header.length,body.length);
-		System.out.println("Chunk " + chunkNo + " ; body_length:" + body.length);
+		byte[] fullPacket = makeByteArrayPacket(body);
 		return new DatagramPacket(fullPacket, fullPacket.length, config.getMdrIP(), config.getMdrPort());
 	}
 
