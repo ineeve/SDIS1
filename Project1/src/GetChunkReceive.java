@@ -115,11 +115,13 @@ public class GetChunkReceive implements Runnable {
 		return msgStr.getBytes(Charset.forName("ISO_8859_1"));
 	}
 
-	private DatagramPacket makeDatagramPacket(byte[] data) {
-		String msgStr = String.format("CHUNK 1.0 %s %s %d %s%s", config.getPeerId(), fileId, chunkNo, CRLF, CRLF);
-		msgStr += new String(data, Charset.forName("ISO_8859_1"));
-		byte[] msg = msgStr.getBytes(Charset.forName("ISO_8859_1"));
-		return new DatagramPacket(msg, msg.length, config.getMdrIP(), config.getMdrPort());
+	private DatagramPacket makeDatagramPacket(byte[] body) {
+		byte[] header = Messages.getChunkHeader(fileId,chunkNo);
+		byte[] fullPacket = new byte[header.length + body.length];
+		System.arraycopy(header,0,fullPacket,0,header.length);
+		System.arraycopy(body,0,fullPacket,header.length,body.length);
+		System.out.println("Chunk " + chunkNo + " ; body_length:" + body.length);
+		return new DatagramPacket(fullPacket, fullPacket.length, config.getMdrIP(), config.getMdrPort());
 	}
 
 
