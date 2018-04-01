@@ -8,8 +8,6 @@ import utils.ThreadUtils;
 
 public class SendDeleteFile implements Runnable {
 	
-	private static final String CRLF = "\r\n";
-	
 	private Config config;
 	private MulticastSocket mcSocket;
 	private File file;
@@ -51,8 +49,7 @@ public class SendDeleteFile implements Runnable {
 	}
 
 	private DatagramPacket makeDeletePacket() {
-		String deleteMsgStr = String.format("DELETE %s %s %s %s%s", config.getProtocolVersion(), config.getPeerId(), fileId, CRLF, CRLF);
-		byte[] deleteMsg = deleteMsgStr.getBytes(Charset.forName("ISO_8859_1"));
+		byte[] deleteMsg = Messages.getDELETEHeader(fileId);
 		DatagramPacket packet = new DatagramPacket(deleteMsg, deleteMsg.length, config.getMcIP(), config.getMcPort());
 		return packet;
 	}

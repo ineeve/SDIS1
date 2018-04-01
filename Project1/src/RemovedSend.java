@@ -12,11 +12,11 @@ public class RemovedSend implements Runnable {
     private String fileId;
     private Integer chunkNo;
 
-    public RemovedSend(Config config, MulticastSocket mcSocket, Path filename){
+    public RemovedSend(Config config, MulticastSocket mcSocket,String fileId, Integer chunkNo){
         this.config = config;
         this.mcSocket = mcSocket;
-        fileId = FileProcessor.getFileIdByPath(filename);
-        chunkNo = FileProcessor.getChunkNo(filename);
+        this.fileId = fileId;
+        this.chunkNo = chunkNo;
     }
 
     @Override
@@ -36,8 +36,7 @@ public class RemovedSend implements Runnable {
     }
 
     private DatagramPacket createPacket(){
-        String removedMsgStr = String.format("REMOVED %s %s %s %s %s%s", config.getProtocolVersion(), config.getPeerId(), fileId, chunkNo, CRLF, CRLF);
-        byte[] removedMsg = removedMsgStr.getBytes(Charset.forName("ISO_8859_1"));
+        byte[] removedMsg = Messages.getRemovedHeader(fileId, chunkNo);
         return new DatagramPacket(removedMsg, removedMsg.length, config.getMcIP(), config.getMcPort());
     }
 

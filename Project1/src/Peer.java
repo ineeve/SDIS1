@@ -30,6 +30,7 @@ public class Peer implements RMIInterface {
 	private Set<String> filesToNotWatch;
 	private ChunksRequested chunksRequested;
 	private FilesRestored filesRestored;
+	private ChunksStored chunksStored;
 	
 	private Config config;
 	private Thread tcpServer;
@@ -42,9 +43,10 @@ public class Peer implements RMIInterface {
 		repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
 		filesToNotWatch = new ConcurrentHashMap().newKeySet();
 		filesRestored = new FilesRestored();
+		chunksStored = new ChunksStored();
 
-		mcListener = new MCListener(config, repStatus, filesToNotWatch);
-		mdbListener = new MDBListener(config, repStatus, filesToNotWatch);
+		mcListener = new MCListener(config, repStatus, filesToNotWatch, chunksStored);
+		mdbListener = new MDBListener(config, repStatus, filesToNotWatch, chunksStored);
 		mdrListener = new MDRListener(config, chunksRequested, filesRestored);
 
 		Thread mdbListenerThr = new Thread(mcListener);
@@ -55,7 +57,6 @@ public class Peer implements RMIInterface {
 		mcListenerThr.start();
 		mdrListenerThr.start();
 
-		Random rnd = new Random();
 		TCP_PORT = 4444;
 	}
 
@@ -92,7 +93,7 @@ public class Peer implements RMIInterface {
 			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
 			System.exit(1);
 		}
-		Config config = new Config(args[0],"1.0");
+		Config.setPeer(args[0]);
 		try {
 			config.setMcIP(InetAddress.getByName(args[1]));
 			config.setMcPort(Integer.parseInt(args[2]));
@@ -160,7 +161,7 @@ public class Peer implements RMIInterface {
 	@Override
 	public void reclaim(long maxDiskSpace) throws RemoteException {
 		repStatus.setBytesReserved(maxDiskSpace * 1000);
-		pool.execute(new ReclaimDiskSpace(config, repStatus));
+		pool.execute(new ReclaimDiskSpace(config, repStatus, chunksStored));
 	}
 
 

@@ -6,10 +6,12 @@ public class ReclaimDiskSpace implements Runnable {
 
     private Config config;
     private ReplicationStatus replicationStatus;
+    private ChunksStored chunksStored;
 
-    public ReclaimDiskSpace(Config config, ReplicationStatus replicationStatus){
+    public ReclaimDiskSpace(Config config, ReplicationStatus replicationStatus, ChunksStored chunksStored){
         this.config = config;
         this.replicationStatus = replicationStatus;
+        this.chunksStored = chunksStored;
     }
 
     @Override
@@ -37,6 +39,7 @@ public class ReclaimDiskSpace implements Runnable {
             long fileLength = FileProcessor.loadFile(filePath).length();
             replicationStatus.decrementBytesUsed(fileLength);
             FileProcessor.deleteFile(filePath);
+            chunksStored.removeIfExists(key.getLeft(),key.getRight());
             if (replicationStatus.getBytesUsed() < replicationStatus.getBytesReserved()) break;
         }
     }

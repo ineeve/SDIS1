@@ -10,7 +10,8 @@ public class StoreChunk implements Runnable {
 
 	private static final String CRLF = "\r\n";
 
-    private FutureBuffer futureBuffer;
+    private byte[] body;
+    private FutureBuffer future;
 
     private MulticastSocket mdbSocket;
 	private Config config;
@@ -22,13 +23,24 @@ public class StoreChunk implements Runnable {
 	private ReplicationStatus repStatus;
 
 	public StoreChunk(Config config, MulticastSocket mdbSocket, String fileId, int chunkNo, byte replicationDegree,
-                      ReplicationStatus repStatus, FutureBuffer futureBuffer) {
+                      ReplicationStatus repStatus, byte[] body) {
 		this.mdbSocket = mdbSocket;
 		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
 		this.replicationDegree = replicationDegree;
-		this.futureBuffer = futureBuffer;
+		this.body = body;
+		this.repStatus = repStatus;
+	}
+
+	public StoreChunk(Config config, MulticastSocket mdbSocket, String fileId, int chunkNo, byte replicationDegree,
+					  ReplicationStatus repStatus, FutureBuffer future) {
+		this.mdbSocket = mdbSocket;
+		this.config = config;
+		this.fileId = fileId;
+		this.chunkNo = chunkNo;
+		this.replicationDegree = replicationDegree;
+		this.future = future;
 		this.repStatus = repStatus;
 	}
 
@@ -69,17 +81,13 @@ public class StoreChunk implements Runnable {
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg) {
-		String putChunkMsgStr = "PUTCHUNK " + config.getProtocolVersion() + " " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + repDeg + " " + CRLF + CRLF;
-		byte[] putChunkMsgHeader = putChunkMsgStr.getBytes(Charset.forName("ISO_8859_1"));
-		byte[] data = FileProcessor.getDataFromFuture(futureBuffer);
-		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + data.length];
-		for (int i = 0; i < putChunkMsg.length; i++) {
-			if (i < putChunkMsgHeader.length) {
-				putChunkMsg[i] = putChunkMsgHeader[i];
-			} else {
-				putChunkMsg[i] = data[i - putChunkMsgHeader.length];
-			}
+		byte[] putChunkMsgHeader = Messages.getPUTCHUNKHeader(fileId,chunkNo,repDeg);
+		if (body == null){
+			body = FileProcessor.getDataFromFuture(future);
 		}
+		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + body.length];
+		System.arraycopy(putChunkMsgHeader, 0, putChunkMsg, 0, putChunkMsgHeader.length);
+		System.arraycopy(body,0,putChunkMsg,putChunkMsgHeader.length, body.length);
 		DatagramPacket packet = new DatagramPacket(putChunkMsg, putChunkMsg.length, config.getMdbIP(), config.getMdbPort());
 		return packet;
 	}

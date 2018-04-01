@@ -6,9 +6,13 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 public class GetChunkReceive implements Runnable {
 
@@ -16,36 +20,44 @@ public class GetChunkReceive implements Runnable {
 	
 	private DatagramPacket getChunkPacket;
 	private MulticastSocket mdrSocket;
+	private ChunksStored chunksStored;
 
 	private Config config;
 
 	private String fileId;
 	private Integer chunkNo;
 
-	public GetChunkReceive(Config config, MulticastSocket mdrSocket, DatagramPacket packet) {
+	public GetChunkReceive(Config config, MulticastSocket mdrSocket, DatagramPacket packet, ChunksStored chunksStored) {
 		this.config = config;
 		this.getChunkPacket = packet;
 		this.mdrSocket = mdrSocket;
+		this.chunksStored = chunksStored;
 	}
 
 	@Override
 	public void run() {
-		String msg = new String(getChunkPacket.getData(), Charset.forName("ISO_8859_1")).trim();
+		String msg = new String(Arrays.copyOfRange(getChunkPacket.getData(), 0, getChunkPacket.getLength()), StandardCharsets.ISO_8859_1);
 		String crlf = new String(CRLF);
-		String[] splitMessage = msg.trim().split(crlf);
+		String[] splitMessage = msg.split(crlf);
 		String head[] = splitMessage[0].split("\\s+");
 		String protocolVersion = head[1];
 		String senderId = head[2];
 		if (senderId.equals(config.getPeerId())) return; //no need to send chunks if I am asking to restore
 		fileId = head[3];
 		chunkNo = Integer.parseInt(head[4]);
-		String chunkFilename = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
-		Path path = Paths.get(chunkFilename);
+		String chunkFilePath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
+
+		boolean success = chunksStored.getFuture(fileId,chunkNo);
+		if (!success) {
+            System.err.println("Could not get future for: " + FileProcessor.createChunkName(fileId,chunkNo));
+            return;
+        }
+		Path path = Paths.get(chunkFilePath);
 		byte[] data;
 		try {
 			data = Files.readAllBytes(path);
 		} catch (IOException e) {
-			System.out.format("Error reading %s.\n", chunkFilename);
+			System.out.format("Error reading %s.\n", chunkFilePath);
 			return;
 		}
 		ThreadUtils.waitBetween(0,400);

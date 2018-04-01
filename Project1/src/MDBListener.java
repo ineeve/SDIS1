@@ -11,18 +11,18 @@ public class MDBListener implements Runnable {
 
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
-	private ConcurrentHashMap<String,ArrayList<Integer>> chunksStored; //filename to chunks
+	private ChunksStored chunksStored; //filename to chunks
 	private ReplicationStatus repStatus;
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private Config config;
 	private Set<String> filesToNotWatch;
 
-	public MDBListener(Config config, ReplicationStatus repStatus, Set<String> filesToNotWatch) {
+	public MDBListener(Config config, ReplicationStatus repStatus, Set<String> filesToNotWatch, ChunksStored chunksStored) {
 		this.filesToNotWatch = filesToNotWatch;
 		this.config = config;
 		this.repStatus = repStatus;
-		chunksStored = new ConcurrentHashMap<>();
+		this.chunksStored = chunksStored;
 		try {
 			mcSocket = new MulticastSocket(config.getMcPort());
 			mcSocket.joinGroup(config.getMcIP());

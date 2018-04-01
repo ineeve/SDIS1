@@ -3,6 +3,8 @@ import java.nio.charset.Charset;
 
 public class Messages {
 
+	private final static String CRLF = "\r\n";
+
 	private final static String STORED = "STORED";
 	private final static String GETCHUNK = "GETCHUNK";
 	private final static String CHUNK = "CHUNK";
@@ -10,8 +12,6 @@ public class Messages {
 	private final static String REMOVED = "REMOVED";
 	private final static String DELETE = "DELETE";
 
-	
-	
 	public static boolean isStored(DatagramPacket packet) {
 		return getType(packet).equals(STORED);
 	}
@@ -35,4 +35,18 @@ public class Messages {
 		return msg.split(" ")[0];
 	}
 
+	private static byte[] getBytesFromString(String str){
+	    return str.getBytes(Charset.forName("ISO_8859_1"));
+    }
+
+	public static byte[] getPUTCHUNKHeader(String fileId, Integer chunkNo, Byte repDeg){
+		return getBytesFromString(String.format("PUTCHUNK 1.0 %s %s %d %d %s%s", Config.getPeerId(), fileId, chunkNo, repDeg, CRLF, CRLF));
+	}
+	public static byte[] getDELETEHeader(String fileId){
+		return getBytesFromString(String.format("DELETE 1.0 %s %s %s%s", Config.getPeerId(), fileId, CRLF, CRLF));
+	}
+	public static byte[] getRemovedHeader(String fileId, Integer chunkNo){
+	    return getBytesFromString(String.format("REMOVED 1.0 %s %s %s %s%s", Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
+    }
 }
+

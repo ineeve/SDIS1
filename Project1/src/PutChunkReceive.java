@@ -1,3 +1,5 @@
+import utils.Pair;
+
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -6,10 +8,14 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class PutChunkReceive implements Runnable {
@@ -18,13 +24,13 @@ public class PutChunkReceive implements Runnable {
 	
 	private DatagramPacket putChunkPacket;
 	private MulticastSocket mcSocket;
-	private ConcurrentHashMap<String, ArrayList<Integer>> chunksStored;
+	private ChunksStored chunksStored;
 	private ReplicationStatus repStatus;
 	private Set<String> filesToNotWatch;
 
 	private Config config;
 
-	public PutChunkReceive(Config config, DatagramPacket putChunkPacket, ConcurrentHashMap<String, ArrayList<Integer>> chunksStored,
+	public PutChunkReceive(Config config, DatagramPacket putChunkPacket, ChunksStored chunksStored,
                            ReplicationStatus repStatus, MulticastSocket mcSocket, Set<String> filesToNotWatch) {
 		this.config = config;
 		this.putChunkPacket = putChunkPacket;
@@ -40,9 +46,9 @@ public class PutChunkReceive implements Runnable {
 	}
 	
 	private void parseReceivedChunk() {
-		String receivedMsg = new String(putChunkPacket.getData(), Charset.forName("ISO_8859_1"));
+        String receivedMsg = new String(Arrays.copyOfRange(putChunkPacket.getData(), 0, putChunkPacket.getLength()), StandardCharsets.ISO_8859_1);
 		String crlf = new String(CRLF);
-		String[] splitMessage = receivedMsg.trim().split(crlf + crlf);
+		String[] splitMessage = receivedMsg.split(crlf + crlf);
 		String head[] = splitMessage[0].split("\\s+");
 		String body = splitMessage[1];
 		String version = head[1];
@@ -52,12 +58,9 @@ public class PutChunkReceive implements Runnable {
 			filesToNotWatch.remove(fileId);
 			int chunkNo = Integer.parseInt(head[4]);
 			byte repDeg = (byte) Integer.parseInt(head[5]);
-			chunksStored.putIfAbsent(fileId, new ArrayList<>());
 			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
-			ArrayList<Integer> chunksStoredForFile = chunksStored.get(fileId);
 
-			if(!chunksStoredForFile.contains(chunkNo)){
-				chunksStoredForFile.add(chunkNo);
+			if(!chunksStored.contains(fileId, chunkNo)){
 				storeChunk(body,fileId,chunkNo);
 			}
 			sendConfirmation(makeStoredPacket(version,fileId,chunkNo), chunkNo);
@@ -86,10 +89,12 @@ public class PutChunkReceive implements Runnable {
 	}
 	
 	private void storeChunk(String body, String fileId, int chunkNo) {
+	    System.out.println("Chunk " + chunkNo + " ; body length: " + body.length());
 		String chunkPath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
         if (repStatus.getBytesUsed() + body.length() < repStatus.getBytesReserved()){
             repStatus.incrementBytesUsed(body.length());
-            FileProcessor.writeSingleChunkAsync(Paths.get(chunkPath), body.getBytes(Charset.forName("ISO_8859_1")));
+            Future<Integer> future = FileProcessor.writeSingleChunkAsync(Paths.get(chunkPath), body.getBytes(Charset.forName("ISO_8859_1")));
+			chunksStored.add(fileId, chunkNo, future);
         }else{
             System.out.println("No disk space available: " + repStatus.getBytesUsed() + "/" + repStatus.getBytesReserved());
         }

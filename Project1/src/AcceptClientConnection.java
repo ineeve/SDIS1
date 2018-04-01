@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.concurrent.Future;
 
 public class AcceptClientConnection implements Runnable {
 
@@ -55,7 +56,7 @@ public class AcceptClientConnection implements Runnable {
     }
 
     private boolean parseReceivedChunk(){
-        String msg = new String(bytesReceived, Charset.forName("ISO_8859_1")).trim();
+        String msg = new String(bytesReceived, Charset.forName("ISO_8859_1"));
         String crlf = new String(CRLF);
         String[] splitMessage = msg.split(crlf + crlf);
         String head[] = splitMessage[0].split("\\s+");
@@ -77,8 +78,8 @@ public class AcceptClientConnection implements Runnable {
         Path outputPath = Paths.get(config.getPeerDir() + "restored/" + fileId);
         ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
         if (fileChunks.size() > 0){
-            boolean result = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
-            if (result){
+            ArrayList<Future<Integer>> futures = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
+            if (futures != null){
                 chunksRequested.clear(fileId);
                 filesRestored.removeFile(fileId);
                 System.out.println("File being restored to " + outputPath);

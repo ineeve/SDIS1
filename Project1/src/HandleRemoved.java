@@ -6,6 +6,8 @@ import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.concurrent.Future;
 
 public class HandleRemoved implements Runnable {
@@ -37,7 +39,7 @@ public class HandleRemoved implements Runnable {
     }
 
     private void parsePacket(){
-        String msg = new String(removedPacket.getData(), Charset.forName("ISO_8859_1")).trim();
+        String msg = new String(Arrays.copyOfRange(removedPacket.getData(), 0, removedPacket.getLength()), StandardCharsets.ISO_8859_1);
         String head[] = msg.split("\\s+");
         senderId = head[2];
         fileId = head[3];
@@ -61,11 +63,10 @@ public class HandleRemoved implements Runnable {
             String chunkName = FileProcessor.createChunkName(fileId,chunkNo);
             File chunkFile = FileProcessor.loadFile(config.getPeerDir() + "stored/"+ chunkName);
             if (chunkFile != null){
-                ByteBuffer buffer = ByteBuffer.allocate(0);
-                Future<Integer> future = FileProcessor.getDataAsync(chunkFile,buffer);
-                if (future != null){
+                FutureBuffer futureBuffer = FileProcessor.getDataAsync(chunkFile);
+                if (futureBuffer != null){
                     Thread storeChunkThread = new Thread(new StoreChunk(config,mdbSocket,fileId,chunkNo,
-                            desiredRepDeg, replicationStatus, new FutureBuffer(buffer,future)));
+                            desiredRepDeg, replicationStatus, futureBuffer));
                     storeChunkThread.start();
                 }
             }

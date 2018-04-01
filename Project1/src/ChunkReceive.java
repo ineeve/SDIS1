@@ -1,8 +1,11 @@
 import java.net.DatagramPacket;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.Future;
 
 public class ChunkReceive implements Runnable{
 
@@ -31,7 +34,7 @@ public class ChunkReceive implements Runnable{
     }
     
     private boolean parseReceivedChunk(){
-        String msg = new String(chunkPacket.getData(), Charset.forName("ISO_8859_1")).trim();
+        String msg = new String(Arrays.copyOfRange(chunkPacket.getData(), 0, chunkPacket.getLength()), StandardCharsets.ISO_8859_1);
 		String crlf = new String(CRLF);
 		String[] splitMessage = msg.trim().split(crlf + crlf);
         String head[] = splitMessage[0].split("\\s+");
@@ -58,8 +61,8 @@ public class ChunkReceive implements Runnable{
         Path outputPath = Paths.get(config.getPeerDir() + "restored/" + fileId);
         ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
         if (fileChunks.size() > 0){
-            boolean result = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
-            if (result){
+            ArrayList<Future<Integer>> futures = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
+            if (futures != null){
                 chunksRequested.clear(fileId);
                 filesRestored.removeFile(fileId);
                 System.out.println("File being restored to " + outputPath);

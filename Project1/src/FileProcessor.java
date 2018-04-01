@@ -30,14 +30,15 @@ public class FileProcessor{
      * @param chunkSizes Max size of each chunk
      * @return true if file is being created, false otherwise.
      */
-    public static boolean writeFileAsync(Path path, ArrayList<byte[]> chunksToWrite, int chunkSizes){
+    public static ArrayList<Future<Integer>> writeFileAsync(Path path, ArrayList<byte[]> chunksToWrite, int chunkSizes){
         AsynchronousFileChannel fileChannel = null;
         try {
             fileChannel = AsynchronousFileChannel.open(path,StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
+        ArrayList<Future<Integer>> futures = new ArrayList<>();
         if (chunksToWrite.size() > 0){
             long position = 0;
             for (int i = 0; i < chunksToWrite.size(); i++){
@@ -45,51 +46,36 @@ public class FileProcessor{
                 ByteBuffer buffer = ByteBuffer.allocate(chunkSizes);
                 buffer.put(chunkToWrite);
                 buffer.flip();
-                fileChannel.write(buffer, position);
+                futures.add(fileChannel.write(buffer, position));
                 position += chunkToWrite.length;
                 buffer.clear();
             }
-            return true;
+            return futures;
         }
-        return false;
+        return null;
     }
 
-    public static boolean writeSingleChunkAsync(Path path, byte[] chunkToWrite){
+    public static Future<Integer> writeSingleChunkAsync(Path path, byte[] chunkToWrite){
         AsynchronousFileChannel fileChannel = null;
         try {
             fileChannel = AsynchronousFileChannel.open(path,StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
+        System.out.println("Storing chunk with length: " + chunkToWrite.length);
         ByteBuffer buffer = ByteBuffer.allocate(chunkToWrite.length);
         long position = 0;
         buffer.put(chunkToWrite);
         buffer.flip();
-        fileChannel.write(buffer, position);
+        Future<Integer> future = fileChannel.write(buffer, position);
         buffer.clear();
 
-        return true;
+        return future;
     }
 
-
-    public static byte[] getDataFromFuture(FutureBuffer futureBuffer){
-        ByteBuffer buffer = futureBuffer.getBuffer();
-        try {
-            futureBuffer.getFuture().get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        buffer.flip();
-        byte[] data = new byte[buffer.limit()];
-        buffer.get(data);
-        buffer.clear();
-        return data;
-    }
-
-    public static ArrayList<FutureBuffer> readFileChunksAsync(File file, int chunkSize){
+    public static ArrayList<FutureBuffer> readFileChunksAsync(File file){
+        int chunkSize = Config.MAX_CHUNK_SIZE;
         int numChunks = (int) Math.ceil(file.length() / (double)chunkSize);
         ArrayList<FutureBuffer> futureBuffers = new ArrayList<>(numChunks);
         AsynchronousFileChannel fileChannel;
@@ -117,7 +103,23 @@ public class FileProcessor{
     }
 
 
-    public static Future<Integer> getDataAsync(File file, ByteBuffer buffer){
+    public static byte[] getDataFromFuture(FutureBuffer futureBuffer){
+        ByteBuffer buffer = futureBuffer.getBuffer();
+        try {
+            futureBuffer.getFuture().get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        buffer.flip();
+        byte[] data = new byte[buffer.limit()];
+        buffer.get(data);
+        buffer.clear();
+        return data;
+    }
+
+    public static FutureBuffer getDataAsync(File file){
 		Path path;
         AsynchronousFileChannel fileChannel;
 		try {
@@ -132,8 +134,9 @@ public class FileProcessor{
 		    e.printStackTrace();
             return null;
         }
-        buffer = ByteBuffer.allocate((int)file.length());
-		return fileChannel.read(buffer,0);
+        ByteBuffer buffer = ByteBuffer.allocate((int)file.length());
+		Future<Integer> future = fileChannel.read(buffer,0);
+		return new FutureBuffer(buffer,future);
     }
 
 

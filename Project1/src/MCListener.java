@@ -15,20 +15,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MCListener implements Runnable {
 
 
-	private ExecutorService pool = Executors.newCachedThreadPool();
+
+    private ExecutorService pool = Executors.newCachedThreadPool();
 	
 	private Config config;
 	private ReplicationStatus replicationStatus;
+    private ChunksStored chunksStored;
+
 	private MulticastSocket mcSocket;
 	private MulticastSocket mdrSocket;
 	private MulticastSocket mdbSocket;
 
 	private Set<String> filesToNotWatch; //this is thread-safe
 
-	public MCListener(Config config, ReplicationStatus replicationStatus, Set<String> filesToNotWatch) {
+	public MCListener(Config config, ReplicationStatus replicationStatus, Set<String> filesToNotWatch, ChunksStored chunksStored) {
 		this.filesToNotWatch = filesToNotWatch;
 	    this.config = config;
 		this.replicationStatus = replicationStatus;
+		this.chunksStored = chunksStored;
 		createWatcher();
 		try {
 			mcSocket = new MulticastSocket(config.getMcPort());
@@ -44,7 +48,7 @@ public class MCListener implements Runnable {
 	}
 
 	private void createWatcher(){
-		pool.execute(new WatchStored(filesToNotWatch,config,mcSocket));
+		pool.execute(new WatchStored(filesToNotWatch,config,mcSocket, chunksStored));
 	}
 
 	@Override
@@ -66,7 +70,7 @@ public class MCListener implements Runnable {
 		if (Messages.isStored(packet)) {
 			pool.execute(new StoredReceive(packet, replicationStatus));
 		} else if (Messages.isGetChunk(packet)) {
-			pool.execute(new GetChunkReceive(config, mdrSocket, packet));
+			pool.execute(new GetChunkReceive(config, mdrSocket, packet, chunksStored));
 		} else if (Messages.isRemoved(packet)){
 			pool.execute(new HandleRemoved(config, replicationStatus, packet, mdbSocket));
 		} else if (Messages.isDelete(packet)) {

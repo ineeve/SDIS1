@@ -5,7 +5,6 @@ import java.nio.file.*;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
@@ -18,13 +17,15 @@ public class WatchStored implements Runnable{
     private Config config;
     private MulticastSocket mcSocket;
     private Set<String> filesToNotWatch;
+    private ChunksStored chunksStored;
 
     private ExecutorService pool = Executors.newCachedThreadPool();
 
-    public WatchStored(Set<String> filesToNotWatch, Config config, MulticastSocket mcSocket){
+    public WatchStored(Set<String> filesToNotWatch, Config config, MulticastSocket mcSocket, ChunksStored chunksStored){
         this.config = config;
         this.mcSocket = mcSocket;
         this.filesToNotWatch = filesToNotWatch;
+        this.chunksStored = chunksStored;
     }
 
     @Override
@@ -72,7 +73,9 @@ public class WatchStored implements Runnable{
     }
 
     private void reclaimSpace(Path filePath){
-
-        pool.execute(new RemovedSend(config, mcSocket, filePath));
+        String fileId = FileProcessor.getFileIdByPath(filePath.getFileName());
+        Integer chunkNo = FileProcessor.getChunkNo(filePath.getFileName());
+        chunksStored.removeIfExists(fileId, chunkNo);
+        pool.execute(new RemovedSend(config, mcSocket, fileId,chunkNo));
     }
 }
