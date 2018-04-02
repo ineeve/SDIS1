@@ -167,9 +167,12 @@ public class ReplicationStatus implements Serializable {
 		filesToDelete.add(fileId);
 	}
 
-	public void checkFilesToDelete() {
+	public ArrayList<String> getFilesToDelete() {
 		for (String fileId : filesToDelete) {
-			
+			if (getReplicationDegreeOfFile(fileId) <= 0) {
+				filesToDelete.remove(fileId);
+			}
 		}
+		return filesToDelete;
 	}
 }

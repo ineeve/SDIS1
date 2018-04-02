@@ -22,6 +22,14 @@ public class SendDeleteFile implements Runnable {
 		this.repStatus = replicationStatus;
 		replicationStatus.setDeriredRepDegreeOfFile(fileId, (byte) 0);
 	}
+	
+	public SendDeleteFile(String version, MulticastSocket mcSocket, String fileId, ReplicationStatus replicationStatus) {
+		this.version = version;
+		this.mcSocket = mcSocket;
+		this.fileId = fileId;
+		this.repStatus = replicationStatus;
+		replicationStatus.setDeriredRepDegreeOfFile(fileId, (byte) 0);
+	}
 
 	@Override
 	public void run() {

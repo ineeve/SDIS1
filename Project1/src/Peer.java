@@ -63,7 +63,7 @@ public class Peer implements RMIInterface {
 
 		TCP_PORT = 4444;
 		
-		deleteWatcher = new DeleteWatcher(repStatus);
+		deleteWatcher = new DeleteWatcher(mcSocket, repStatus);
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 		executor.scheduleAtFixedRate(deleteWatcher, 0, 30, TimeUnit.SECONDS);
 	}
@@ -90,9 +90,9 @@ public class Peer implements RMIInterface {
 	}
 
 	private void createFolders(){
-		new File(config.getPeerDir() + "data/").mkdirs();
-		new File(config.getPeerDir() + "restored/").mkdirs();
-		new File(config.getPeerDir() + "stored/").mkdirs();
+		new File(Config.getPeerDir() + "data/").mkdirs();
+		new File(Config.getPeerDir() + "restored/").mkdirs();
+		new File(Config.getPeerDir() + "stored/").mkdirs();
 	}
 	
 	private Config parseArgs(String[] args) throws Exception {
