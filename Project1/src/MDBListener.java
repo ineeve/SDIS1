@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import utils.ThreadUtils;
+
 public class MDBListener implements Runnable {
 
 	private ExecutorService pool = Executors.newCachedThreadPool();
@@ -44,6 +46,9 @@ public class MDBListener implements Runnable {
 			e.printStackTrace();
 		}
 		if (Messages.isPutChunk(putChunkPacket)){
+			if (Messages.isEnhanced(putChunkPacket)) {
+				ThreadUtils.waitBetween(10, 400);
+			}
             pool.execute(new PutChunkReceive(config, putChunkPacket, chunksStored, repStatus, mcSocket, filesToNotWatch));
         }else{
             System.out.println("Caught unhandled message in MDBListener");
