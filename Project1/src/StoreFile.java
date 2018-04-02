@@ -15,7 +15,6 @@ public class StoreFile implements Runnable {
 
 	private File file;
 	private byte replicationDegree;
-	//private byte[] fileData;
 
 	private ReplicationStatus repStatus;
 
@@ -32,47 +31,10 @@ public class StoreFile implements Runnable {
 
 	@Override
 	public void run() {
-	    /*FutureBuffer futureBuffer = FileProcessor.getDataAsync(file);
-		fileData = FileProcessor.getDataFromFuture(futureBuffer);
-		ArrayList<byte[]> filePortions = splitFile();
-		sendChunks(filePortions);*/
         System.out.println("File length: " + file.length());
         ArrayList<FutureBuffer> futures = FileProcessor.readFileChunksAsync(file);
         sendChunks(futures);
 	}
-
-	/*
-	private boolean filePortionIsFullSize(int i) {
-		return fileData.length - i >= Config.MAX_CHUNK_SIZE;
-	}
-
-
-	private ArrayList<byte[]> splitFile() {
-		ArrayList<byte[]> result = new ArrayList<>();
-		int i;
-		for (i = 0; filePortionIsFullSize(i); i += Config.MAX_CHUNK_SIZE) {
-			byte[] filePortion = new byte[Config.MAX_CHUNK_SIZE];
-			System.arraycopy(fileData, i, filePortion, 0, Config.MAX_CHUNK_SIZE);
-			result.add(filePortion);
-		}
-		// i now has index of start position of last file portion
-		int lastChunkLength = fileData.length - i;
-		byte[] lastFilePortion = new byte[lastChunkLength];
-		System.arraycopy(fileData, i, lastFilePortion, 0, lastChunkLength);
-		result.add(lastFilePortion);
-		return result;
-	}*/
-
-	/*private void sendChunks(ArrayList<byte[]> filePortions) {
-        String fileId = FileProcessor.getFileId(file);
-	    System.out.println("Sending file to store: " + fileId);
-		int chunkNo = 0;
-		for (byte[] filePortion : filePortions) {
-			pool.execute(new StoreChunk(config, mdbSocket, fileId, chunkNo, replicationDegree, repStatus, filePortion));
-			chunkNo++;
-		}
-		repStatus.setNumChunks(fileId, chunkNo);
-	}*/
 
 	private void sendChunks(ArrayList<FutureBuffer> filePortions) {
         String fileId = FileProcessor.getFileId(file);
