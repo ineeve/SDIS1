@@ -58,7 +58,7 @@ public class GetChunkReceive implements Runnable {
 
 		if (protocolVersion.equals(Config.ORIG_VERSION)){
 			SendChunkUDP(data);
-		}else if (protocolVersion.equals(Config.ENH_VERSION)){
+		}else if (protocolVersion.equals(Config.ENH_VERSION) && Config.isEnhanced()){
 			String[] head2 = splitMessage[1].split("\\s+");
 			String hostname = head2[0];
 			Integer port = Integer.parseInt(head2[1]);
