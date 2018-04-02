@@ -35,7 +35,7 @@ public class Peer implements RMIInterface {
 	private Config config;
 	private Thread tcpServer;
 	
-	public Peer(String[] args) throws RemoteException {
+	public Peer(String[] args) throws Exception {
 		this.chunksRequested = new ChunksRequested();
 		this.config = parseArgs(args);
 		createFolders();
@@ -87,7 +87,7 @@ public class Peer implements RMIInterface {
 		new File(config.getPeerDir() + "stored/").mkdirs();
 	}
 	
-	private Config parseArgs(String[] args) {
+	private Config parseArgs(String[] args) throws Exception {
 		if (args.length < 7) {
 			System.out.println("Usage:");
 			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
@@ -95,17 +95,20 @@ public class Peer implements RMIInterface {
 		}
 		Config.setPeer(args[0]);
 		try {
-			config.setMcIP(InetAddress.getByName(args[1]));
-			config.setMcPort(Integer.parseInt(args[2]));
-			config.setMdbIP(InetAddress.getByName(args[3]));
-			config.setMdbPort(Integer.parseInt(args[4]));
-			config.setMdrIP(InetAddress.getByName(args[5]));
-			config.setMdrPort(Integer.parseInt(args[6]));
+			Config.setMcIP(InetAddress.getByName(args[1]));
+			Config.setMcPort(Integer.parseInt(args[2]));
+			Config.setMdbIP(InetAddress.getByName(args[3]));
+			Config.setMdbPort(Integer.parseInt(args[4]));
+			Config.setMdrIP(InetAddress.getByName(args[5]));
+			Config.setMdrPort(Integer.parseInt(args[6]));
 		} catch (UnknownHostException e) {
 			System.out.println("Invalid IP argument.");
 			e.printStackTrace();
 			System.exit(1);
 		}
+		
+		Config.checkIPRanges();
+		
 		return config;
 	}
 
@@ -123,9 +126,13 @@ public class Peer implements RMIInterface {
 	         
 	         registry.rebind(String.format("Peer_%s", peer.config.getPeerId()), stub);
 	         System.out.println("Server ready"); 
-	      } catch (Exception e) { 
+	      } catch (RemoteException e) { 
 	         System.err.println("Server exception: Run rmiregistry on bin folder");
 	         System.exit(-1);
+	      } catch (Exception e) {
+	    	  System.err.println("Peer: main failed.");
+	    	  e.printStackTrace();
+	    	  System.exit(-2);
 	      }
 	}
 
