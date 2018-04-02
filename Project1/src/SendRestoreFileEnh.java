@@ -2,7 +2,9 @@ import utils.ThreadUtils;
 
 import java.io.*;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.nio.charset.Charset;
 
 public class SendRestoreFileEnh implements Runnable{
@@ -33,7 +35,13 @@ public class SendRestoreFileEnh implements Runnable{
         long totalChunks = Math.floorDiv(fileSize, Config.MAX_CHUNK_SIZE) + 1;
         for (int chunkNo = 0 ; chunkNo < totalChunks; chunkNo++){
             boolean packetSent = false;
-            DatagramPacket getChunkPacket = makeGetChunkPacket(chunkNo);
+            DatagramPacket getChunkPacket = null;
+			try {
+				getChunkPacket = makeGetChunkPacket(chunkNo);
+			} catch (UnknownHostException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
             while(!packetSent){
                 try {
                     mcSocket.send(getChunkPacket);
@@ -47,9 +55,9 @@ public class SendRestoreFileEnh implements Runnable{
         }
     }
 
-    private DatagramPacket makeGetChunkPacket(int chunkNo) {
+    private DatagramPacket makeGetChunkPacket(int chunkNo) throws UnknownHostException {
         String getChunkMsgStr = "GETCHUNK 2.0 " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + CRLF;
-        getChunkMsgStr += "localhost " + tcp_port + " " + CRLF + CRLF;
+        getChunkMsgStr += InetAddress.getLocalHost().getHostAddress() + " " + tcp_port + " " + CRLF + CRLF;
         byte[] getChunkMsg = getChunkMsgStr.getBytes(Charset.forName("ISO_8859_1"));
         DatagramPacket packet = new DatagramPacket(getChunkMsg, getChunkMsg.length, config.getMcIP(), config.getMcPort());
         return packet;
