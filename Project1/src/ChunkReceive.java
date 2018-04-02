@@ -16,13 +16,11 @@ public class ChunkReceive implements Runnable{
     private DatagramPacket chunkPacket;
     private String fileId;
     private Integer chunkNo;
-    private Config config;
 
-    public ChunkReceive(DatagramPacket chunkPacket, FilesRestored filesRestored, Config config, ChunksRequested chunksRequested){
+    public ChunkReceive(DatagramPacket chunkPacket, FilesRestored filesRestored, ChunksRequested chunksRequested){
         this.filesRestored = filesRestored;
         this.chunkPacket = chunkPacket;
         this.chunksRequested = chunksRequested;
-        this.config = config;
     }
 	@Override
 	public void run() {
@@ -39,7 +37,7 @@ public class ChunkReceive implements Runnable{
 		String[] splitMessage = msg.split(crlf + crlf);
         String head[] = splitMessage[0].split("\\s+");
         String senderId = head[2];
-        if (senderId.equals(config.getPeerId())) return false;
+        if (senderId.equals(Config.getPeerId())) return false;
 		fileId = head[3];
         chunkNo = Integer.parseInt(head[4]);
         if (!chunksRequested.wasRequested(fileId,chunkNo)) return false;
@@ -58,7 +56,7 @@ public class ChunkReceive implements Runnable{
 
     private void createFile() {
         filesRestored.setFileCreated(fileId,true);
-        Path outputPath = Paths.get(config.getPeerDir() + "restored/" + fileId);
+        Path outputPath = Paths.get(Config.getPeerDir() + "restored/" + fileId);
         ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
         if (fileChunks.size() > 0){
             ArrayList<Future<Integer>> futures = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);

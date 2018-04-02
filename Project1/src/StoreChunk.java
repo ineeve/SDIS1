@@ -26,7 +26,6 @@ public class StoreChunk implements Runnable {
                       ReplicationStatus repStatus, byte[] body) {
 		this.mdbSocket = mdbSocket;
 		this.version = version;
-		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
 		this.replicationDegree = replicationDegree;
@@ -34,11 +33,10 @@ public class StoreChunk implements Runnable {
 		this.repStatus = repStatus;
 	}
 
-	public StoreChunk(Config config, MulticastSocket mdbSocket, String version, String fileId, int chunkNo, byte replicationDegree,
+	public StoreChunk(MulticastSocket mdbSocket, String version, String fileId, int chunkNo, byte replicationDegree,
 					  ReplicationStatus repStatus, FutureBuffer future) {
 		this.mdbSocket = mdbSocket;
 		this.version = version;
-		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
 		this.replicationDegree = replicationDegree;
@@ -90,7 +88,7 @@ public class StoreChunk implements Runnable {
 		byte[] putChunkMsg = new byte[putChunkMsgHeader.length + body.length];
 		System.arraycopy(putChunkMsgHeader, 0, putChunkMsg, 0, putChunkMsgHeader.length);
 		System.arraycopy(body,0,putChunkMsg,putChunkMsgHeader.length, body.length);
-		DatagramPacket packet = new DatagramPacket(putChunkMsg, putChunkMsg.length, config.getMdbIP(), config.getMdbPort());
+		DatagramPacket packet = new DatagramPacket(putChunkMsg, putChunkMsg.length, Config.getMdbIP(), Config.getMdbPort());
 		return packet;
 	}
 }

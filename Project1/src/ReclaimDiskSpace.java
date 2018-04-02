@@ -4,12 +4,10 @@ import java.util.Map;
 
 public class ReclaimDiskSpace implements Runnable {
 
-    private Config config;
     private ReplicationStatus replicationStatus;
     private ChunksStored chunksStored;
 
-    public ReclaimDiskSpace(Config config, ReplicationStatus replicationStatus, ChunksStored chunksStored){
-        this.config = config;
+    public ReclaimDiskSpace(ReplicationStatus replicationStatus, ChunksStored chunksStored) {
         this.replicationStatus = replicationStatus;
         this.chunksStored = chunksStored;
     }
@@ -35,7 +33,7 @@ public class ReclaimDiskSpace implements Runnable {
             Pair<String,Integer> key = entry.getKey();
             Pair<Byte, HashSet<String>> value = entry.getValue();
             System.out.println("ReclaimDiskSpace: Removing file with " + value.getLeft() + "/" + value.getRight().size());
-            String filePath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(key.getLeft(), key.getRight());
+            String filePath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(key.getLeft(), key.getRight());
             long fileLength = FileProcessor.loadFile(filePath).length();
             replicationStatus.decrementBytesUsed(fileLength);
             FileProcessor.deleteFile(filePath);
