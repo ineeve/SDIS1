@@ -7,7 +7,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -18,11 +17,12 @@ import java.util.concurrent.TimeUnit;
 public class Peer implements RMIInterface {
 
 	private int TCP_PORT;
-	private ExecutorService pool = Executors.newCachedThreadPool();
+	private ExecutorService pool;
 
 	private MCListener mcListener;
 	private MDBListener mdbListener;
 	private MDRListener mdrListener;
+	private WatchStoredFolder watchStoredFolder;
 	
 	private DeleteWatcher deleteWatcher;
 	
@@ -40,6 +40,7 @@ public class Peer implements RMIInterface {
 	private Thread tcpServer;
 	
 	public Peer(String[] args) throws Exception {
+		pool = Executors.newCachedThreadPool();
 		this.chunksRequested = new ChunksRequested();
 		this.config = parseArgs(args);
 		createFolders();
@@ -52,14 +53,17 @@ public class Peer implements RMIInterface {
 		mcListener = new MCListener(config, repStatus, filesToNotWatch, chunksStored);
 		mdbListener = new MDBListener(config, repStatus, filesToNotWatch, chunksStored);
 		mdrListener = new MDRListener(config, chunksRequested, filesRestored);
+		WatchStoredFolder watchStoredFolder = new WatchStoredFolder(filesToNotWatch,config,mcSocket, chunksStored);
 
 		Thread mdbListenerThr = new Thread(mcListener);
 		Thread mcListenerThr = new Thread(mdbListener);
 		Thread mdrListenerThr = new Thread(mdrListener);
-		
+		Thread watchStoredFolderThr = new Thread(watchStoredFolder);
+
 		mdbListenerThr.start();
 		mcListenerThr.start();
 		mdrListenerThr.start();
+		watchStoredFolderThr.start();
 
 		TCP_PORT = 4444;
 		
@@ -68,6 +72,8 @@ public class Peer implements RMIInterface {
 			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 			executor.scheduleAtFixedRate(deleteWatcher, 0, 30, TimeUnit.SECONDS);
 		}
+
+
 	}
 
 	private void initiateTCPServer() {

@@ -26,7 +26,6 @@ public class MCListener implements Runnable {
 	    this.config = config;
 		this.replicationStatus = replicationStatus;
 		this.chunksStored = chunksStored;
-		createWatcher();
 		try {
 			mcSocket = new MulticastSocket(config.getMcPort());
 			mcSocket.joinGroup(config.getMcIP());
@@ -40,9 +39,7 @@ public class MCListener implements Runnable {
 		}
 	}
 
-	private void createWatcher(){
-		pool.execute(new WatchStored(filesToNotWatch,config,mcSocket, chunksStored));
-	}
+
 
 	@Override
 	public void run() {

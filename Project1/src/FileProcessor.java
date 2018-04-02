@@ -210,10 +210,12 @@ public class FileProcessor{
 		final File folder = new File(folderPath);
 		final File[] files = folder.listFiles((dir, name) -> name.matches(prefix + ".*"));
 		for (final File file : files) {
-		    if (!file.delete() ) {
-		        System.err.println("FileProcessor: Can't remove " + file.getAbsolutePath());
-		    }else{
+            try {
+                Files.deleteIfExists(file.toPath());
                 numberOfFilesDeleted++;
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.err.println("FileProcessor: Can't remove " + file.getAbsolutePath());
             }
 		}
 		return numberOfFilesDeleted;
