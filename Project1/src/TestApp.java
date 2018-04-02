@@ -6,7 +6,8 @@ import java.rmi.registry.Registry;
 
 public class TestApp {
 	
-	private static String accessPoint;
+	private static String hostname;
+	private static String peerId;
 	private static Operation operation;
 	private static String pathname; // for BACKUP, RESTORE and DELETE
 	private static long maxDiskSpace; // KByte for RECLAIM
@@ -16,10 +17,10 @@ public class TestApp {
 		parseArgs(args);
 		try {
 			// Getting the registry 
-	        Registry registry = LocateRegistry.getRegistry(null); 
+	        Registry registry = LocateRegistry.getRegistry(hostname); 
 	    
 	        // Looking up the registry for the remote object 
-	        RMIInterface stub = (RMIInterface) registry.lookup(accessPoint); 
+	        RMIInterface stub = (RMIInterface) registry.lookup(peerId); 
 	    
 	        // Calling the remote method using the obtained object 
 	        invokeServer(stub);
@@ -59,7 +60,7 @@ public class TestApp {
 			printUsage();
 			System.exit(1);
 		}
-		accessPoint = args[0];
+		parseAccessPoint(args[0]);
 		operation = OperationFactory.getOperation(args[1]);
 		
 		switch (operation) {
@@ -95,6 +96,13 @@ public class TestApp {
 			}
 			desiredRepDegree = (byte) Integer.parseInt(args[3]);
 		}
+	}
+
+	// <IP>//<PeerID>
+	private static void parseAccessPoint(String arg) {
+		String[] args = arg.split("//");
+		hostname = args[0];
+		peerId = args[1];
 	}
 
 	private static void printUsage() {
