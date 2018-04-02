@@ -12,13 +12,11 @@ public class SendRestoreFile implements Runnable{
     private MulticastSocket mcSocket;
     private File file;
     private String fileId;
-    private Config config;
     private ChunksRequested chunksRequested;
 
 
-    public SendRestoreFile(Config config, MulticastSocket mcSocket,File file, ChunksRequested chunksRequested ){
+    public SendRestoreFile(MulticastSocket mcSocket,File file, ChunksRequested chunksRequested) {
         this.chunksRequested = chunksRequested;
-        this.config = config;
         this.mcSocket = mcSocket;
         this.file = file;
         this.fileId = FileProcessor.getFileId(file);
@@ -48,7 +46,7 @@ public class SendRestoreFile implements Runnable{
 
     private DatagramPacket makeGetChunkPacket(int chunkNo) {
 		byte[] getChunkMsg = Messages.getGETCHUNKHeader(fileId, chunkNo);
-		DatagramPacket packet = new DatagramPacket(getChunkMsg, getChunkMsg.length, config.getMcIP(), config.getMcPort());
+		DatagramPacket packet = new DatagramPacket(getChunkMsg, getChunkMsg.length, Config.getMcIP(), Config.getMcPort());
 		return packet;
 	}
 

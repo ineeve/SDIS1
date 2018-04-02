@@ -19,13 +19,10 @@ public class GetChunkReceive implements Runnable {
 	private MulticastSocket mdrSocket;
 	private ChunksStored chunksStored;
 
-	private Config config;
-
 	private String fileId;
 	private Integer chunkNo;
 
-	public GetChunkReceive(Config config, MulticastSocket mdrSocket, DatagramPacket packet, ChunksStored chunksStored) {
-		this.config = config;
+	public GetChunkReceive(MulticastSocket mdrSocket, DatagramPacket packet, ChunksStored chunksStored) {
 		this.getChunkPacket = packet;
 		this.mdrSocket = mdrSocket;
 		this.chunksStored = chunksStored;
@@ -39,10 +36,10 @@ public class GetChunkReceive implements Runnable {
 		String head[] = splitMessage[0].split("\\s+");
 		String protocolVersion = head[1];
 		String senderId = head[2];
-		if (senderId.equals(config.getPeerId())) return; //no need to send chunks if I am asking to restore
+		if (senderId.equals(Config.getPeerId())) return; //no need to send chunks if I am asking to restore
 		fileId = head[3];
 		chunkNo = Integer.parseInt(head[4]);
-		String chunkFilePath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
+		String chunkFilePath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
 
 		boolean success = chunksStored.getFuture(fileId,chunkNo);
 		if (!success) {
@@ -116,7 +113,7 @@ public class GetChunkReceive implements Runnable {
 
 	private DatagramPacket makeDatagramPacket(byte[] body) {
 		byte[] fullPacket = makeByteArrayPacket(body);
-		return new DatagramPacket(fullPacket, fullPacket.length, config.getMdrIP(), config.getMdrPort());
+		return new DatagramPacket(fullPacket, fullPacket.length, Config.getMdrIP(), Config.getMdrPort());
 	}
 
 

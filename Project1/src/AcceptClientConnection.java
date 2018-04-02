@@ -16,17 +16,15 @@ public class AcceptClientConnection implements Runnable {
     private ChunksRequested chunksRequested;
     private FilesRestored filesRestored;
 
-    private Config config;
     private Socket clientSocket;
     private String fileId;
     private int chunkNo;
     private byte[] packetReceived;
 
-    public AcceptClientConnection(Config config, Socket clientSocket, ChunksRequested chunksRequested, FilesRestored filesRestored){
+    public AcceptClientConnection(Socket clientSocket, ChunksRequested chunksRequested, FilesRestored filesRestored){
         this.clientSocket = clientSocket;
         this.chunksRequested = chunksRequested;
         this.filesRestored = filesRestored;
-        this.config = config;
     }
 
     @Override
@@ -44,7 +42,7 @@ public class AcceptClientConnection implements Runnable {
         try {
             while((numBytesRead = in.read(bytesReceived)) != -1){
                 totalBytesRead += numBytesRead;
-                bytesReceivedArray.add(new Pair(bytesReceived, numBytesRead));
+                bytesReceivedArray.add(new Pair<byte[], Integer>(bytesReceived, numBytesRead));
                 bytesReceived = new byte[Config.MAX_CHUNK_SIZE+1000];
             }
         } catch (IOException e) {
@@ -107,7 +105,7 @@ public class AcceptClientConnection implements Runnable {
 
     private void createFile() {
         filesRestored.setFileCreated(fileId,true);
-        Path outputPath = Paths.get(config.getPeerDir() + "restored/" + fileId);
+        Path outputPath = Paths.get(Config.getPeerDir() + "restored/" + fileId);
         ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
         if (fileChunks.size() > 0){
             ArrayList<Future<Integer>> futures = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);

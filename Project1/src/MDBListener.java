@@ -17,19 +17,17 @@ public class MDBListener implements Runnable {
 	private ReplicationStatus repStatus;
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
-	private Config config;
 	private Set<String> filesToNotWatch;
 
-	public MDBListener(Config config, ReplicationStatus repStatus, Set<String> filesToNotWatch, ChunksStored chunksStored) {
+	public MDBListener(ReplicationStatus repStatus, Set<String> filesToNotWatch, ChunksStored chunksStored) {
 		this.filesToNotWatch = filesToNotWatch;
-		this.config = config;
 		this.repStatus = repStatus;
 		this.chunksStored = chunksStored;
 		try {
-			mcSocket = new MulticastSocket(config.getMcPort());
-			mcSocket.joinGroup(config.getMcIP());
-			mdbSocket = new MulticastSocket(config.getMdbPort());
-			mdbSocket.joinGroup(config.getMdbIP());
+			mcSocket = new MulticastSocket(Config.getMcPort());
+			mcSocket.joinGroup(Config.getMcIP());
+			mdbSocket = new MulticastSocket(Config.getMdbPort());
+			mdbSocket.joinGroup(Config.getMdbIP());
 		} catch (IOException e) {
 			System.out.println("Failed to start MDBListener service.");
 			e.printStackTrace();
@@ -49,7 +47,7 @@ public class MDBListener implements Runnable {
 			if (Messages.isEnhanced(putChunkPacket)) {
 				ThreadUtils.waitBetween(10, 400);
 			}
-            pool.execute(new PutChunkReceive(config, putChunkPacket, chunksStored, repStatus, mcSocket, filesToNotWatch));
+            pool.execute(new PutChunkReceive(putChunkPacket, chunksStored, repStatus, mcSocket, filesToNotWatch));
         }else{
             System.out.println("Caught unhandled message in MDBListener");
         }

@@ -11,7 +11,6 @@ public class MCListener implements Runnable {
 
     private ExecutorService pool = Executors.newCachedThreadPool();
 	
-	private Config config;
 	private ReplicationStatus replicationStatus;
     private ChunksStored chunksStored;
 
@@ -21,25 +20,22 @@ public class MCListener implements Runnable {
 
 	private Set<String> filesToNotWatch; //this is thread-safe
 
-	public MCListener(Config config, ReplicationStatus replicationStatus, Set<String> filesToNotWatch, ChunksStored chunksStored) {
+	public MCListener(ReplicationStatus replicationStatus, Set<String> filesToNotWatch, ChunksStored chunksStored) {
 		this.filesToNotWatch = filesToNotWatch;
-	    this.config = config;
 		this.replicationStatus = replicationStatus;
 		this.chunksStored = chunksStored;
 		try {
-			mcSocket = new MulticastSocket(config.getMcPort());
-			mcSocket.joinGroup(config.getMcIP());
-			mdrSocket = new MulticastSocket(config.getMdrPort());
-			mdrSocket.joinGroup(config.getMdrIP());
-			mdbSocket = new MulticastSocket(config.getMdbPort());
-			mdbSocket.joinGroup(config.getMdbIP());
+			mcSocket = new MulticastSocket(Config.getMcPort());
+			mcSocket.joinGroup(Config.getMcIP());
+			mdrSocket = new MulticastSocket(Config.getMdrPort());
+			mdrSocket.joinGroup(Config.getMdrIP());
+			mdbSocket = new MulticastSocket(Config.getMdbPort());
+			mdbSocket.joinGroup(Config.getMdbIP());
 		} catch (IOException e) {
 			System.out.println("Failed to start MCListener service.");
 			e.printStackTrace();
 		}
 	}
-
-
 
 	@Override
 	public void run() {
@@ -60,9 +56,9 @@ public class MCListener implements Runnable {
 		if (Messages.isStored(packet)) {
 			pool.execute(new StoredReceive(packet, replicationStatus));
 		} else if (Messages.isGetChunk(packet)) {
-			pool.execute(new GetChunkReceive(config, mdrSocket, packet, chunksStored));
+			pool.execute(new GetChunkReceive(mdrSocket, packet, chunksStored));
 		} else if (Messages.isRemoved(packet)){
-			pool.execute(new RemovedReceive(config, replicationStatus, packet, mdbSocket));
+			pool.execute(new RemovedReceive(replicationStatus, packet, mdbSocket));
 		} else if (Messages.isDelete(packet)) {
 			pool.execute(new DeleteReceive(packet, filesToNotWatch, mcSocket));
 		} else if (Messages.isDeleted(packet)){

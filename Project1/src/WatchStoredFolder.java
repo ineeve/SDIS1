@@ -14,15 +14,13 @@ public class WatchStoredFolder implements Runnable{
 
     private WatchService watcher;
 
-    private Config config;
     private MulticastSocket mcSocket;
     private Set<String> filesToNotWatch;
     private ChunksStored chunksStored;
 
     private ExecutorService pool = Executors.newCachedThreadPool();
 
-    public WatchStoredFolder(Set<String> filesToNotWatch, Config config, MulticastSocket mcSocket, ChunksStored chunksStored){
-        this.config = config;
+    public WatchStoredFolder(Set<String> filesToNotWatch, MulticastSocket mcSocket, ChunksStored chunksStored){
         this.mcSocket = mcSocket;
         this.filesToNotWatch = filesToNotWatch;
         this.chunksStored = chunksStored;
@@ -30,7 +28,7 @@ public class WatchStoredFolder implements Runnable{
 
     @Override
     public void run() {
-        Path backupDirectory = Paths.get(config.getPeerDir() + "stored/");
+        Path backupDirectory = Paths.get(Config.getPeerDir() + "stored/");
         WatchKey eventKey;
         try {
             watcher = FileSystems.getDefault().newWatchService();
@@ -72,6 +70,6 @@ public class WatchStoredFolder implements Runnable{
         String fileId = FileProcessor.getFileIdByPath(filePath.getFileName());
         Integer chunkNo = FileProcessor.getChunkNo(filePath.getFileName());
         chunksStored.removeIfExists(fileId, chunkNo);
-        pool.execute(new RemovedSend(config, mcSocket, fileId,chunkNo));
+        pool.execute(new RemovedSend(mcSocket, fileId,chunkNo));
     }
 }

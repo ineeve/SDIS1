@@ -9,15 +9,13 @@ import java.util.Arrays;
 public class RemovedReceive implements Runnable {
 
     private MulticastSocket mdbSocket;
-    private Config config;
     private ReplicationStatus replicationStatus;
     private DatagramPacket removedPacket;
     private int chunkNo;
     private String fileId;
     private String senderId;
 
-    public RemovedReceive(Config config, ReplicationStatus repStatus, DatagramPacket removedPacket, MulticastSocket mdbSocket){
-        this.config = config;
+    public RemovedReceive(ReplicationStatus repStatus, DatagramPacket removedPacket, MulticastSocket mdbSocket) {
         replicationStatus = repStatus;
         this.removedPacket = removedPacket;
         this.mdbSocket = mdbSocket;
@@ -25,7 +23,7 @@ public class RemovedReceive implements Runnable {
     @Override
     public void run() {
         parsePacket();
-        if (senderId.equals(config.getPeerId())) return;
+        if (senderId.equals(Config.getPeerId())) return;
         updateReplicationStatus();
         Integer numConfirmations = replicationStatus.getNumConfirms(fileId, chunkNo);
         Byte desiredRepDeg = replicationStatus.getDesiredReplicationDeg(fileId, chunkNo);
@@ -57,11 +55,11 @@ public class RemovedReceive implements Runnable {
         // We check again to make sure that a PUTCHUNK message for the same chunk was not received meanwhile
         if (numConfirmations < desiredRepDeg){
             String chunkName = FileProcessor.createChunkName(fileId,chunkNo);
-            File chunkFile = FileProcessor.loadFile(config.getPeerDir() + "stored/"+ chunkName);
+            File chunkFile = FileProcessor.loadFile(Config.getPeerDir() + "stored/"+ chunkName);
             if (chunkFile != null){
                 FutureBuffer futureBuffer = FileProcessor.getDataAsync(chunkFile);
                 if (futureBuffer != null){
-                    Thread storeChunkThread = new Thread(new StoreChunk(config,mdbSocket,Config.getCurrentVersion(),fileId,chunkNo,
+                    Thread storeChunkThread = new Thread(new StoreChunk(mdbSocket,Config.getCurrentVersion(),fileId,chunkNo,
                             desiredRepDeg, replicationStatus, futureBuffer));
                     storeChunkThread.start();
                 }

@@ -36,24 +36,24 @@ public class Peer implements RMIInterface {
 	private FilesRestored filesRestored;
 	private ChunksStored chunksStored;
 	
-	private Config config;
 	private Thread tcpServer;
 	
 	public Peer(String[] args) throws Exception {
 		pool = Executors.newCachedThreadPool();
 		this.chunksRequested = new ChunksRequested();
-		this.config = parseArgs(args);
+		parseArgs(args);
 		createFolders();
 		createSockets();
-		repStatus = ReplicationStatusFactory.getNew(config.getPeerDir());
+		repStatus = ReplicationStatusFactory.getNew(Config.getPeerDir());
 		filesToNotWatch = new ConcurrentHashMap().newKeySet();
 		filesRestored = new FilesRestored();
 		chunksStored = new ChunksStored();
 
-		mcListener = new MCListener(config, repStatus, filesToNotWatch, chunksStored);
-		mdbListener = new MDBListener(config, repStatus, filesToNotWatch, chunksStored);
-		mdrListener = new MDRListener(config, chunksRequested, filesRestored);
-		WatchStoredFolder watchStoredFolder = new WatchStoredFolder(filesToNotWatch,config,mcSocket, chunksStored);
+		mcListener = new MCListener(repStatus, filesToNotWatch, chunksStored);
+		mdbListener = new MDBListener(repStatus, filesToNotWatch, chunksStored);
+		mdrListener = new MDRListener(chunksRequested, filesRestored);
+		watchStoredFolder = new WatchStoredFolder(filesToNotWatch, mcSocket, chunksStored);
+
 
 		Thread mdbListenerThr = new Thread(mcListener);
 		Thread mcListenerThr = new Thread(mdbListener);
@@ -78,18 +78,18 @@ public class Peer implements RMIInterface {
 
 	private void initiateTCPServer() {
 		if (tcpServer == null){
-			tcpServer = new Thread(new TCPServer(TCP_PORT, config, chunksRequested, filesRestored));
+			tcpServer = new Thread(new TCPServer(TCP_PORT, chunksRequested, filesRestored));
 			tcpServer.start();
 		}
 	}
 
 	private void createSockets() {
 		try {
-			mcSocket = new MulticastSocket(config.getMcPort());
-			mcSocket.joinGroup(config.getMcIP());
+			mcSocket = new MulticastSocket(Config.getMcPort());
+			mcSocket.joinGroup(Config.getMcIP());
 			mcSocket.setTimeToLive(3);
-			mdbSocket = new MulticastSocket(config.getMdbPort());
-			mdbSocket.joinGroup(config.getMdbIP());
+			mdbSocket = new MulticastSocket(Config.getMdbPort());
+			mdbSocket.joinGroup(Config.getMdbIP());
 			mdbSocket.setTimeToLive(3);
 		} catch (IOException e) {
 			System.err.println("Peer: Failed to create sockets.");
@@ -103,7 +103,7 @@ public class Peer implements RMIInterface {
 		new File(Config.getPeerDir() + "stored/").mkdirs();
 	}
 	
-	private Config parseArgs(String[] args) throws Exception {
+	private void parseArgs(String[] args) throws Exception {
 		if (args.length < 8) {
 			System.out.println("Usage:");
 			System.out.println("java Peer Peerid Version MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
@@ -125,8 +125,6 @@ public class Peer implements RMIInterface {
 		}
 		
 		Config.checkIPRanges();
-		
-		return config;
 	}
 
 	public static void main(String[] args) throws RemoteException {
@@ -141,7 +139,7 @@ public class Peer implements RMIInterface {
 	         // Binding the remote object (stub) in the registry 
 	         Registry registry = LocateRegistry.getRegistry();
 	         
-	         registry.rebind(String.format("Peer_%s", peer.config.getPeerId()), stub);
+	         registry.rebind(String.format("Peer_%s", Config.getPeerId()), stub);
 	         System.out.println("Server ready"); 
 	      } catch (RemoteException e) { 
 	         System.err.println("Server exception: Run rmiregistry on bin folder");
@@ -160,7 +158,7 @@ public class Peer implements RMIInterface {
 			System.err.println("Peer: File not found.");
 			return;
 		}
-        pool.execute(new StoreFile(config, mdbSocket, Config.ORIG_VERSION, file, desiredRepDegree, repStatus));
+        pool.execute(new StoreFile(mdbSocket, Config.ORIG_VERSION, file, desiredRepDegree, repStatus));
 	}
 	
 	@Override
@@ -170,7 +168,7 @@ public class Peer implements RMIInterface {
 			System.err.println("Peer: File not found.");
 			return;
 		}
-        pool.execute(new StoreFile(config, mdbSocket, Config.ENH_VERSION, file, desiredRepDegree, repStatus));
+        pool.execute(new StoreFile(mdbSocket, Config.ENH_VERSION, file, desiredRepDegree, repStatus));
 	}
 
 	@Override
@@ -180,14 +178,14 @@ public class Peer implements RMIInterface {
 			System.err.println("Peer: File not found.");
 			return;
 		}
-		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
+		pool.execute(new SendRestoreFile(mcSocket, file, chunksRequested));
 	}
 
 	@Override
 	public void restoreEnh(String pathname) throws RemoteException {
 		File file = FileProcessor.loadFile(pathname);
 		initiateTCPServer();
-		pool.execute(new SendRestoreFileEnh(config, mcSocket, file, chunksRequested, TCP_PORT));
+		pool.execute(new SendRestoreFileEnh(mcSocket, file, chunksRequested, TCP_PORT));
 	}
 
 	@Override
@@ -209,7 +207,7 @@ public class Peer implements RMIInterface {
 	@Override
 	public void reclaim(long maxDiskSpace) throws RemoteException {
 		repStatus.setBytesReserved(maxDiskSpace * 1000);
-		pool.execute(new ReclaimDiskSpace(config, repStatus, chunksStored));
+		pool.execute(new ReclaimDiskSpace(repStatus, chunksStored));
 	}
 
 

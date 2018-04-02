@@ -28,11 +28,8 @@ public class PutChunkReceive implements Runnable {
 	private ReplicationStatus repStatus;
 	private Set<String> filesToNotWatch;
 
-	private Config config;
-
-	public PutChunkReceive(Config config, DatagramPacket putChunkPacket, ChunksStored chunksStored,
+	public PutChunkReceive(DatagramPacket putChunkPacket, ChunksStored chunksStored,
                            ReplicationStatus repStatus, MulticastSocket mcSocket, Set<String> filesToNotWatch) {
-		this.config = config;
 		this.putChunkPacket = putChunkPacket;
 		this.chunksStored = chunksStored;
 		this.repStatus = repStatus;
@@ -57,7 +54,7 @@ public class PutChunkReceive implements Runnable {
 		int chunkNo = Integer.parseInt(head[4]);
 		byte desiredRepDeg = (byte) Integer.parseInt(head[5]);
 		
-		if (senderId.equals(config.getPeerId())) return;
+		if (senderId.equals(Config.getPeerId())) return;
 		
 		if (Config.isEnhanced() && protocolVersion.equals(Config.ENH_VERSION)) {
 			// discard chunk if actual rep degree is already greater or equal to the desired degree
@@ -93,14 +90,14 @@ public class PutChunkReceive implements Runnable {
 	}	
 	
 	private DatagramPacket makeStoredPacket(String version, String fileId, int chunkNo){
-		String storedMsg = "STORED " + version + " " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + CRLF + CRLF;
-		DatagramPacket packet = new DatagramPacket(storedMsg.getBytes(), storedMsg.length(), config.getMcIP(), config.getMcPort());
+		String storedMsg = "STORED " + version + " " + Config.getPeerId() + " " + fileId + " " + chunkNo + " " + CRLF + CRLF;
+		DatagramPacket packet = new DatagramPacket(storedMsg.getBytes(), storedMsg.length(), Config.getMcIP(), Config.getMcPort());
 		return packet;
 	}
 	
 	private void storeChunk(String body, String fileId, int chunkNo) {
 	    System.out.println("Chunk " + chunkNo + " ; body length: " + body.length());
-		String chunkPath = config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
+		String chunkPath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
         if (repStatus.getBytesUsed() + body.length() < repStatus.getBytesReserved()){
             repStatus.incrementBytesUsed(body.length());
             Future<Integer> future = FileProcessor.writeSingleChunkAsync(Paths.get(chunkPath), body.getBytes(Charset.forName("ISO_8859_1")));

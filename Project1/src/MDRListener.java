@@ -11,21 +11,18 @@ public class MDRListener implements Runnable{
 
     private ExecutorService pool = Executors.newCachedThreadPool();
 
-    private Config config;
-
     private MulticastSocket mdrSocket;
 
     // maps <fileId, <chunkNo, chunk data>>
     private FilesRestored filesRestored;
     private ChunksRequested chunksRequested;
 
-    public MDRListener(Config config, ChunksRequested chunksRequested, FilesRestored filesRestored){
-        this.config = config;
+    public MDRListener(ChunksRequested chunksRequested, FilesRestored filesRestored) {
         this.chunksRequested = chunksRequested;
         this.filesRestored = filesRestored;
         try {
-			mdrSocket = new MulticastSocket(config.getMdrPort());
-			mdrSocket.joinGroup(config.getMdrIP());
+			mdrSocket = new MulticastSocket(Config.getMdrPort());
+			mdrSocket.joinGroup(Config.getMdrIP());
 		} catch (IOException e) {
 			System.out.println("Failed to start MDRListener service.");
 			e.printStackTrace();
@@ -48,7 +45,7 @@ public class MDRListener implements Runnable{
 			e.printStackTrace();
         }
         if (Messages.isChunk(chunkPacket)){
-            pool.execute(new ChunkReceive(chunkPacket, filesRestored, config, chunksRequested));
+            pool.execute(new ChunkReceive(chunkPacket, filesRestored, chunksRequested));
         }else{
             System.out.println("Caught unhandled message in MDRListener");
         }

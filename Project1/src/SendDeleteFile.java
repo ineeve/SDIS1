@@ -35,7 +35,9 @@ public class SendDeleteFile implements Runnable {
 	public void run() {
 		DatagramPacket packet = makeDeletePacket();
 		sendPacket(packet);
-		repStatus.addDeleteWatch(fileId);
+		if (Config.isEnhanced() && version.equals(Config.ENH_VERSION)) {
+			repStatus.addDeleteWatch(fileId);
+		}
 	}
 
 	/**
