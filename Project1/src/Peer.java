@@ -63,9 +63,11 @@ public class Peer implements RMIInterface {
 
 		TCP_PORT = 4444;
 		
-		deleteWatcher = new DeleteWatcher(mcSocket, repStatus);
-		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-		executor.scheduleAtFixedRate(deleteWatcher, 0, 30, TimeUnit.SECONDS);
+		if (Config.isEnhanced()) {
+			deleteWatcher = new DeleteWatcher(mcSocket, repStatus);
+			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+			executor.scheduleAtFixedRate(deleteWatcher, 0, 30, TimeUnit.SECONDS);
+		}
 	}
 
 	private void initiateTCPServer() {

@@ -26,7 +26,7 @@ public class ReplicationStatus implements Serializable {
 	
 	private ArrayList<BackedUpFile> backedUpFiles = new ArrayList<BackedUpFile>();
 
-	private ArrayList<String> filesToDelete;
+	private ArrayList<String> filesToDelete = new ArrayList<String>();
 	
 	public ReplicationStatus(String path) {
 		repDegrees = new ConcurrentHashMap<>();
