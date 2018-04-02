@@ -75,7 +75,6 @@ public class PutChunkReceive implements Runnable {
 			storeChunk(body,fileId,chunkNo);
 		}
 		sendConfirmation(makeStoredPacket(protocolVersion,fileId,chunkNo), chunkNo);
-
 	}
 
 	private void sendConfirmation(DatagramPacket storedPacket, int chunkNo) {
