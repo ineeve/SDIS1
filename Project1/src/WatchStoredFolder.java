@@ -9,7 +9,7 @@ import java.util.concurrent.Executors;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
-public class WatchStored implements Runnable{
+public class WatchStoredFolder implements Runnable{
 
 
     private WatchService watcher;
@@ -20,7 +20,7 @@ public class WatchStored implements Runnable{
 
     private ExecutorService pool = Executors.newCachedThreadPool();
 
-    public WatchStored(Set<String> filesToNotWatch, MulticastSocket mcSocket, ChunksStored chunksStored) {
+    public WatchStoredFolder(Set<String> filesToNotWatch, MulticastSocket mcSocket, ChunksStored chunksStored){
         this.mcSocket = mcSocket;
         this.filesToNotWatch = filesToNotWatch;
         this.chunksStored = chunksStored;

@@ -24,7 +24,6 @@ public class MCListener implements Runnable {
 		this.filesToNotWatch = filesToNotWatch;
 		this.replicationStatus = replicationStatus;
 		this.chunksStored = chunksStored;
-		createWatcher();
 		try {
 			mcSocket = new MulticastSocket(Config.getMcPort());
 			mcSocket.joinGroup(Config.getMcIP());
@@ -36,10 +35,6 @@ public class MCListener implements Runnable {
 			System.out.println("Failed to start MCListener service.");
 			e.printStackTrace();
 		}
-	}
-
-	private void createWatcher(){
-		pool.execute(new WatchStored(filesToNotWatch, mcSocket, chunksStored));
 	}
 
 	@Override
