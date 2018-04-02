@@ -24,7 +24,9 @@ public class DeleteReceive implements Runnable {
 		filesToNotWatch.add(fileId);
 		if (deleteChunks(fileId)){
 			DatagramPacket confirmDeletePacket = makeConfirmationPacket(fileId);
-			sendConfirmPacket(confirmDeletePacket, fileId);
+			if (Config.isEnhanced()) {
+				sendConfirmPacket(confirmDeletePacket, fileId);
+			}
 		}
 	}
 

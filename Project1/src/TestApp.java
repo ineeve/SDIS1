@@ -73,9 +73,9 @@ public class TestApp {
 		case BACKUP:
 		case BACKUPENH:
 		case RESTORE:
-		case DELETEENH:
 		case RESTOREENH:
 		case DELETE:
+		case DELETEENH:
 			if (args.length < 3) {
 				printUsage();
 				System.exit(1);

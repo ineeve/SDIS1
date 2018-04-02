@@ -149,4 +149,8 @@ public class Config {
 	public static String getCurrentVersion() {
 		return version;
 	}
+
+	public static boolean isEnhanced() {
+		return version.equals(ENH_VERSION);
+	}
 }
