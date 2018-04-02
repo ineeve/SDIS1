@@ -2,11 +2,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class ChunksStored {
+public class ChunksStoredFutures {
 
     ConcurrentHashMap<String, ConcurrentHashMap<Integer, Future<Integer>>> chunksStored;
 
-    public ChunksStored(){
+    public ChunksStoredFutures(){
         chunksStored = new ConcurrentHashMap<>();
     }
 

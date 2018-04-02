@@ -42,6 +42,12 @@ public class ReplicationStatus implements Serializable {
                                 (e1, e2) -> e1, LinkedHashMap::new));
     }
 
+    public boolean peerHasChunk(String fileId, Integer chunkNo, String peerId){
+	    Pair<Byte,HashSet<String>> chunkStatus = repDegrees.get(new Pair<>(fileId,chunkNo));
+	    if (chunkStatus == null) return false;
+	    return chunkStatus.getRight().contains(peerId);
+    }
+
     public int getReplicationDegreeOfFile(String fileId){
 		Iterator it = repDegrees.entrySet().iterator();
 		int maxRepDegree = 0;
@@ -56,6 +62,7 @@ public class ReplicationStatus implements Serializable {
 				}
 			}
 		}
+		System.out.println("Replication degree of " + fileId + ": " + maxRepDegree);
 		return maxRepDegree;
 	}
 

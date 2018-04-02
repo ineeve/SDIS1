@@ -5,11 +5,11 @@ import java.util.Map;
 public class ReclaimDiskSpace implements Runnable {
 
     private ReplicationStatus replicationStatus;
-    private ChunksStored chunksStored;
+    private ChunksStoredFutures chunksStoredFutures;
 
-    public ReclaimDiskSpace(ReplicationStatus replicationStatus, ChunksStored chunksStored) {
+    public ReclaimDiskSpace(ReplicationStatus replicationStatus, ChunksStoredFutures chunksStoredFutures) {
         this.replicationStatus = replicationStatus;
-        this.chunksStored = chunksStored;
+        this.chunksStoredFutures = chunksStoredFutures;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ReclaimDiskSpace implements Runnable {
             long fileLength = FileProcessor.loadFile(filePath).length();
             replicationStatus.decrementBytesUsed(fileLength);
             FileProcessor.deleteFile(filePath);
-            chunksStored.removeIfExists(key.getLeft(),key.getRight());
+            chunksStoredFutures.removeIfExists(key.getLeft(),key.getRight());
             if (replicationStatus.getBytesUsed() < replicationStatus.getBytesReserved()) break;
         }
     }

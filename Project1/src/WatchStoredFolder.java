@@ -16,14 +16,14 @@ public class WatchStoredFolder implements Runnable{
 
     private MulticastSocket mcSocket;
     private Set<String> filesToNotWatch;
-    private ChunksStored chunksStored;
+    private ChunksStoredFutures chunksStoredFutures;
 
     private ExecutorService pool = Executors.newCachedThreadPool();
 
-    public WatchStoredFolder(Set<String> filesToNotWatch, MulticastSocket mcSocket, ChunksStored chunksStored){
+    public WatchStoredFolder(Set<String> filesToNotWatch, MulticastSocket mcSocket, ChunksStoredFutures chunksStoredFutures){
         this.mcSocket = mcSocket;
         this.filesToNotWatch = filesToNotWatch;
-        this.chunksStored = chunksStored;
+        this.chunksStoredFutures = chunksStoredFutures;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class WatchStoredFolder implements Runnable{
     private void reclaimSpace(Path filePath){
         String fileId = FileProcessor.getFileIdByPath(filePath.getFileName());
         Integer chunkNo = FileProcessor.getChunkNo(filePath.getFileName());
-        chunksStored.removeIfExists(fileId, chunkNo);
+        chunksStoredFutures.removeIfExists(fileId, chunkNo);
         pool.execute(new RemovedSend(mcSocket, fileId,chunkNo));
     }
 }

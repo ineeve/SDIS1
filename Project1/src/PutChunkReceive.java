@@ -1,20 +1,11 @@
-import utils.Pair;
-
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -24,14 +15,14 @@ public class PutChunkReceive implements Runnable {
 	
 	private DatagramPacket putChunkPacket;
 	private MulticastSocket mcSocket;
-	private ChunksStored chunksStored;
+	private ChunksStoredFutures chunksStoredFutures;
 	private ReplicationStatus repStatus;
 	private Set<String> filesToNotWatch;
 
-	public PutChunkReceive(DatagramPacket putChunkPacket, ChunksStored chunksStored,
+	public PutChunkReceive(DatagramPacket putChunkPacket, ChunksStoredFutures chunksStoredFutures,
                            ReplicationStatus repStatus, MulticastSocket mcSocket, Set<String> filesToNotWatch) {
 		this.putChunkPacket = putChunkPacket;
-		this.chunksStored = chunksStored;
+		this.chunksStoredFutures = chunksStoredFutures;
 		this.repStatus = repStatus;
 		this.mcSocket = mcSocket;
 		this.filesToNotWatch = filesToNotWatch;
@@ -68,7 +59,7 @@ public class PutChunkReceive implements Runnable {
 		filesToNotWatch.remove(fileId);
 		repStatus.putchunk_setDesiredReplicationDeg(desiredRepDeg, fileId, chunkNo);
 
-		if (!chunksStored.contains(fileId, chunkNo)){
+		if (!repStatus.peerHasChunk(fileId,chunkNo, Config.getPeerId())){
 			storeChunk(body,fileId,chunkNo);
 		}
 		sendConfirmation(makeStoredPacket(protocolVersion,fileId,chunkNo), chunkNo);
@@ -101,7 +92,7 @@ public class PutChunkReceive implements Runnable {
         if (repStatus.getBytesUsed() + body.length() < repStatus.getBytesReserved()){
             repStatus.incrementBytesUsed(body.length());
             Future<Integer> future = FileProcessor.writeSingleChunkAsync(Paths.get(chunkPath), body.getBytes(Charset.forName("ISO_8859_1")));
-			chunksStored.add(fileId, chunkNo, future);
+			chunksStoredFutures.add(fileId, chunkNo, future);
         }else{
             System.out.println("No disk space available: " + repStatus.getBytesUsed() + "/" + repStatus.getBytesReserved());
         }

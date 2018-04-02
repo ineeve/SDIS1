@@ -1,9 +1,7 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.util.ArrayList;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -13,16 +11,16 @@ public class MDBListener implements Runnable {
 
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
-	private ChunksStored chunksStored; //filename to chunks
+	private ChunksStoredFutures chunksStoredFutures; //filename to chunks
 	private ReplicationStatus repStatus;
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private Set<String> filesToNotWatch;
 
-	public MDBListener(ReplicationStatus repStatus, Set<String> filesToNotWatch, ChunksStored chunksStored) {
+	public MDBListener(ReplicationStatus repStatus, Set<String> filesToNotWatch, ChunksStoredFutures chunksStoredFutures) {
 		this.filesToNotWatch = filesToNotWatch;
 		this.repStatus = repStatus;
-		this.chunksStored = chunksStored;
+		this.chunksStoredFutures = chunksStoredFutures;
 		try {
 			mcSocket = new MulticastSocket(Config.getMcPort());
 			mcSocket.joinGroup(Config.getMcIP());
@@ -47,7 +45,7 @@ public class MDBListener implements Runnable {
 			if (Messages.isEnhanced(putChunkPacket)) {
 				ThreadUtils.waitBetween(10, 400);
 			}
-            pool.execute(new PutChunkReceive(putChunkPacket, chunksStored, repStatus, mcSocket, filesToNotWatch));
+            pool.execute(new PutChunkReceive(putChunkPacket, chunksStoredFutures, repStatus, mcSocket, filesToNotWatch));
         }else{
             System.out.println("Caught unhandled message in MDBListener");
         }

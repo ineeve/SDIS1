@@ -17,15 +17,15 @@ public class GetChunkReceive implements Runnable {
 	
 	private DatagramPacket getChunkPacket;
 	private MulticastSocket mdrSocket;
-	private ChunksStored chunksStored;
+	private ChunksStoredFutures chunksStoredFutures;
 
 	private String fileId;
 	private Integer chunkNo;
 
-	public GetChunkReceive(MulticastSocket mdrSocket, DatagramPacket packet, ChunksStored chunksStored) {
+	public GetChunkReceive(MulticastSocket mdrSocket, DatagramPacket packet, ChunksStoredFutures chunksStoredFutures) {
 		this.getChunkPacket = packet;
 		this.mdrSocket = mdrSocket;
-		this.chunksStored = chunksStored;
+		this.chunksStoredFutures = chunksStoredFutures;
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class GetChunkReceive implements Runnable {
 		chunkNo = Integer.parseInt(head[4]);
 		String chunkFilePath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
 
-		boolean success = chunksStored.getFuture(fileId,chunkNo);
+		boolean success = chunksStoredFutures.getFuture(fileId,chunkNo);
 		if (!success) {
             System.err.println("GetChunkReceive: Could not get future for: " + FileProcessor.createChunkName(fileId,chunkNo));
             return;

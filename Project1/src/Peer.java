@@ -34,7 +34,7 @@ public class Peer implements RMIInterface {
 	private Set<String> filesToNotWatch;
 	private ChunksRequested chunksRequested;
 	private FilesRestored filesRestored;
-	private ChunksStored chunksStored;
+	private ChunksStoredFutures chunksStoredFutures;
 	
 	private Thread tcpServer;
 	
@@ -47,12 +47,12 @@ public class Peer implements RMIInterface {
 		repStatus = ReplicationStatusFactory.getNew(Config.getPeerDir());
 		filesToNotWatch = new ConcurrentHashMap().newKeySet();
 		filesRestored = new FilesRestored();
-		chunksStored = new ChunksStored();
+		chunksStoredFutures = new ChunksStoredFutures();
 
-		mcListener = new MCListener(repStatus, filesToNotWatch, chunksStored);
-		mdbListener = new MDBListener(repStatus, filesToNotWatch, chunksStored);
+		mcListener = new MCListener(repStatus, filesToNotWatch, chunksStoredFutures);
+		mdbListener = new MDBListener(repStatus, filesToNotWatch, chunksStoredFutures);
 		mdrListener = new MDRListener(chunksRequested, filesRestored);
-		watchStoredFolder = new WatchStoredFolder(filesToNotWatch, mcSocket, chunksStored);
+		watchStoredFolder = new WatchStoredFolder(filesToNotWatch, mcSocket, chunksStoredFutures);
 
 
 		Thread mdbListenerThr = new Thread(mcListener);
@@ -207,7 +207,7 @@ public class Peer implements RMIInterface {
 	@Override
 	public void reclaim(long maxDiskSpace) throws RemoteException {
 		repStatus.setBytesReserved(maxDiskSpace * 1000);
-		pool.execute(new ReclaimDiskSpace(repStatus, chunksStored));
+		pool.execute(new ReclaimDiskSpace(repStatus, chunksStoredFutures));
 	}
 
 
