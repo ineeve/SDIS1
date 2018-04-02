@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.Future;
 
-public class HandleRemoved implements Runnable {
+public class RemovedReceive implements Runnable {
 
     private MulticastSocket mdbSocket;
     private Config config;
@@ -20,7 +20,7 @@ public class HandleRemoved implements Runnable {
     private String fileId;
     private String senderId;
 
-    public HandleRemoved(Config config, ReplicationStatus repStatus, DatagramPacket removedPacket, MulticastSocket mdbSocket){
+    public RemovedReceive(Config config, ReplicationStatus repStatus, DatagramPacket removedPacket, MulticastSocket mdbSocket){
         this.config = config;
         replicationStatus = repStatus;
         this.removedPacket = removedPacket;

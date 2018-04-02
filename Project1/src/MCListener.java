@@ -72,7 +72,7 @@ public class MCListener implements Runnable {
 		} else if (Messages.isGetChunk(packet)) {
 			pool.execute(new GetChunkReceive(config, mdrSocket, packet, chunksStored));
 		} else if (Messages.isRemoved(packet)){
-			pool.execute(new HandleRemoved(config, replicationStatus, packet, mdbSocket));
+			pool.execute(new RemovedReceive(config, replicationStatus, packet, mdbSocket));
 		} else if (Messages.isDelete(packet)) {
 			pool.execute(new DeleteReceive(packet, filesToNotWatch, mcSocket));
 		} else if (Messages.isDeleted(packet)){
