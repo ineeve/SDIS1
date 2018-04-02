@@ -4,7 +4,10 @@ public class Config {
 
 	public static final String MIN_MULTICAST_IP = "224.0.0.1";
 	public static final String MAX_MULTICAST_IP = "239.255.255.255";
+	public static final String ORIG_VERSION = "1.0";
+	public static final String ENH_VERSION = "2.0";
 	
+	private static String version;
     private static String peerId;
 
     private static InetAddress mcIP;
@@ -138,4 +141,12 @@ public class Config {
         }
         return result;
     }
+	
+	public static void setCurrentVersion(String version) {
+		Config.version = version;
+	}
+	
+	public static String getCurrentVersion() {
+		return version;
+	}
 }

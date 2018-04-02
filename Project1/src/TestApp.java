@@ -35,6 +35,9 @@ public class TestApp {
 		case BACKUP:
 			stub.backup(pathname, desiredRepDegree);
 			break;
+		case BACKUPENH:
+			stub.backupEnh(pathname, desiredRepDegree);
+			break;
 		case RESTORE:
 			stub.restore(pathname);
 			break;
@@ -65,6 +68,7 @@ public class TestApp {
 		
 		switch (operation) {
 		case BACKUP:
+		case BACKUPENH:
 		case RESTORE:
         case RESTOREENH:
 		case DELETE:

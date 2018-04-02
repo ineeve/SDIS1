@@ -13,6 +13,7 @@ public class StoreChunk implements Runnable {
     private FutureBuffer future;
 
     private MulticastSocket mdbSocket;
+	private String version;
 	private Config config;
 
 	private String fileId;
@@ -21,9 +22,10 @@ public class StoreChunk implements Runnable {
 
 	private ReplicationStatus repStatus;
 
-	public StoreChunk(Config config, MulticastSocket mdbSocket, String fileId, int chunkNo, byte replicationDegree,
+	public StoreChunk(Config config, MulticastSocket mdbSocket, String version, String fileId, int chunkNo, byte replicationDegree,
                       ReplicationStatus repStatus, byte[] body) {
 		this.mdbSocket = mdbSocket;
+		this.version = version;
 		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
@@ -32,9 +34,10 @@ public class StoreChunk implements Runnable {
 		this.repStatus = repStatus;
 	}
 
-	public StoreChunk(Config config, MulticastSocket mdbSocket, String fileId, int chunkNo, byte replicationDegree,
+	public StoreChunk(Config config, MulticastSocket mdbSocket, String version, String fileId, int chunkNo, byte replicationDegree,
 					  ReplicationStatus repStatus, FutureBuffer future) {
 		this.mdbSocket = mdbSocket;
+		this.version = version;
 		this.config = config;
 		this.fileId = fileId;
 		this.chunkNo = chunkNo;
@@ -80,7 +83,7 @@ public class StoreChunk implements Runnable {
 	}
 
 	private DatagramPacket makeChunkPacket(String fileId, int chunkNo, byte repDeg) {
-		byte[] putChunkMsgHeader = Messages.getPUTCHUNKHeader(fileId,chunkNo,repDeg);
+		byte[] putChunkMsgHeader = Messages.getPUTCHUNKHeader(version,fileId,chunkNo,repDeg);
 		if (body == null){
 			body = FileProcessor.getDataFromFuture(future);
 		}

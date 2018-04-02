@@ -65,7 +65,7 @@ public class HandleRemoved implements Runnable {
             if (chunkFile != null){
                 FutureBuffer futureBuffer = FileProcessor.getDataAsync(chunkFile);
                 if (futureBuffer != null){
-                    Thread storeChunkThread = new Thread(new StoreChunk(config,mdbSocket,fileId,chunkNo,
+                    Thread storeChunkThread = new Thread(new StoreChunk(config,mdbSocket,Config.getCurrentVersion(),fileId,chunkNo,
                             desiredRepDeg, replicationStatus, futureBuffer));
                     storeChunkThread.start();
                 }

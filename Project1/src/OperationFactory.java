@@ -5,6 +5,8 @@ public class OperationFactory {
 		switch (opStr) {
 		case "BACKUP":
 			return Operation.BACKUP;
+		case "BACKUPENH":
+			return Operation.BACKUPENH;
 		case "RESTORE":
 			return Operation.RESTORE;
 		case "RESTOREENH":

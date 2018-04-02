@@ -39,8 +39,8 @@ public class Messages {
 	    return str.getBytes(Charset.forName("ISO_8859_1"));
     }
 
-	public static byte[] getPUTCHUNKHeader(String fileId, Integer chunkNo, Byte repDeg){
-		return getBytesFromString(String.format("PUTCHUNK 1.0 %s %s %d %d %s%s", Config.getPeerId(), fileId, chunkNo, repDeg, CRLF, CRLF));
+	public static byte[] getPUTCHUNKHeader(String version, String fileId, Integer chunkNo, Byte repDeg){
+		return getBytesFromString(String.format("PUTCHUNK %s %s %s %d %d %s%s", version, Config.getPeerId(), fileId, chunkNo, repDeg, CRLF, CRLF));
 	}
 	public static byte[] getDELETEHeader(String fileId){
 		return getBytesFromString(String.format("DELETE 1.0 %s %s %s%s", Config.getPeerId(), fileId, CRLF, CRLF));

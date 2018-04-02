@@ -62,15 +62,15 @@ public class GetChunkReceive implements Runnable {
 		}
 		ThreadUtils.waitBetween(0,400);
 
-		if (protocolVersion.equals("1.0")){
+		if (protocolVersion.equals(Config.ORIG_VERSION)){
 			SendChunkUDP(data);
-		}else if (protocolVersion.equals("2.0")){
+		}else if (protocolVersion.equals(Config.ENH_VERSION)){
 			String[] head2 = splitMessage[1].split("\\s+");
 			String hostname = head2[0];
 			Integer port = Integer.parseInt(head2[1]);
 			SendChunkTCP(data, hostname, port);
 		}else{
-			System.err.println("Protocol Version unknown: " + protocolVersion);
+			System.err.println("GetChunkReceive: Protocol Version unknown: " + protocolVersion);
 		}
 	}
 

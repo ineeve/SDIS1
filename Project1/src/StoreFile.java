@@ -11,6 +11,7 @@ public class StoreFile implements Runnable {
 	private ExecutorService pool;
 	
 	private MulticastSocket mdbSocket;
+	private String version;
 	private Config config;
 
 	private File file;
@@ -18,11 +19,13 @@ public class StoreFile implements Runnable {
 	//private byte[] fileData;
 
 	private ReplicationStatus repStatus;
+
 	
-	public StoreFile(Config config, MulticastSocket mdbSocket, File file,
+	public StoreFile(Config config, MulticastSocket mdbSocket, String version, File file,
                      byte replicationDegree, ReplicationStatus repStatus) {
 		this.mdbSocket = mdbSocket;
 		this.config = config;
+		this.version = version;
 		this.file = file;
 		this.replicationDegree = replicationDegree;
 		this.repStatus = repStatus;
@@ -78,7 +81,7 @@ public class StoreFile implements Runnable {
 	    System.out.println("Sending file to store: " + fileId);
 		int chunkNo = 0;
 		for (FutureBuffer filePortion : filePortions) {
-			pool.execute(new StoreChunk(config, mdbSocket, fileId, chunkNo, replicationDegree, repStatus, filePortion));
+			pool.execute(new StoreChunk(config, mdbSocket, version, fileId, chunkNo, replicationDegree, repStatus, filePortion));
 			chunkNo++;
 		}
 		repStatus.setNumChunks(fileId, chunkNo);

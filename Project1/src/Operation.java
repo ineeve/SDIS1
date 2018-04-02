@@ -5,5 +5,6 @@ public enum Operation {
 	DELETE,
 	RECLAIM,
 	STATE,
+	BACKUPENH,
     RESTOREENH;
 }

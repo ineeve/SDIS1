@@ -88,19 +88,20 @@ public class Peer implements RMIInterface {
 	}
 	
 	private Config parseArgs(String[] args) throws Exception {
-		if (args.length < 7) {
+		if (args.length < 8) {
 			System.out.println("Usage:");
-			System.out.println("java Peerid MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
+			System.out.println("java Peerid Version MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
 			System.exit(1);
 		}
 		Config.setPeer(args[0]);
+		Config.setCurrentVersion(args[1]);
 		try {
-			Config.setMcIP(InetAddress.getByName(args[1]));
-			Config.setMcPort(Integer.parseInt(args[2]));
-			Config.setMdbIP(InetAddress.getByName(args[3]));
-			Config.setMdbPort(Integer.parseInt(args[4]));
-			Config.setMdrIP(InetAddress.getByName(args[5]));
-			Config.setMdrPort(Integer.parseInt(args[6]));
+			Config.setMcIP(InetAddress.getByName(args[2]));
+			Config.setMcPort(Integer.parseInt(args[3]));
+			Config.setMdbIP(InetAddress.getByName(args[4]));
+			Config.setMdbPort(Integer.parseInt(args[5]));
+			Config.setMdrIP(InetAddress.getByName(args[6]));
+			Config.setMdrPort(Integer.parseInt(args[7]));
 		} catch (UnknownHostException e) {
 			System.out.println("Invalid IP argument.");
 			e.printStackTrace();
@@ -143,7 +144,17 @@ public class Peer implements RMIInterface {
 			System.err.println("Peer: File not found.");
 			return;
 		}
-        pool.execute(new StoreFile(config, mdbSocket,file, desiredRepDegree, repStatus));
+        pool.execute(new StoreFile(config, mdbSocket, Config.ORIG_VERSION, file, desiredRepDegree, repStatus));
+	}
+	
+	@Override
+	public void backupEnh(String pathname, byte desiredRepDegree) throws RemoteException {
+		File file = FileProcessor.loadFile(pathname);
+		if (file == null) {
+			System.err.println("Peer: File not found.");
+			return;
+		}
+        pool.execute(new StoreFile(config, mdbSocket, Config.ENH_VERSION, file, desiredRepDegree, repStatus));
 	}
 
 	@Override

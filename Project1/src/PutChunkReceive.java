@@ -51,19 +51,30 @@ public class PutChunkReceive implements Runnable {
 		String[] splitMessage = receivedMsg.split(crlf + crlf);
 		String head[] = splitMessage[0].split("\\s+");
 		String body = splitMessage[1];
-		String version = head[1];
+		String protocolVersion = head[1];
 		String senderId = head[2];
+		String fileId = head[3];
+		int chunkNo = Integer.parseInt(head[4]);
+		byte desiredRepDeg = (byte) Integer.parseInt(head[5]);
+		
 		if (senderId.equals(config.getPeerId())) return;
-			String fileId = head[3];
-			filesToNotWatch.remove(fileId);
-			int chunkNo = Integer.parseInt(head[4]);
-			byte repDeg = (byte) Integer.parseInt(head[5]);
-			repStatus.putchunk_setDesiredReplicationDeg(repDeg, fileId, chunkNo);
-
-			if(!chunksStored.contains(fileId, chunkNo)){
-				storeChunk(body,fileId,chunkNo);
+		
+		if (protocolVersion.equals(Config.ENH_VERSION)){
+			// discard chunk if actual rep degree is already greater or equal to the desired degree
+			if (repStatus.getNumConfirms(fileId, chunkNo) >= desiredRepDeg) {
+				return;
 			}
-			sendConfirmation(makeStoredPacket(version,fileId,chunkNo), chunkNo);
+		} else if (!protocolVersion.equals(Config.ORIG_VERSION)) {
+			System.err.println("PutChunkReceive: Protocol Version unknown: " + protocolVersion);
+		}
+		
+		filesToNotWatch.remove(fileId);
+		repStatus.putchunk_setDesiredReplicationDeg(desiredRepDeg, fileId, chunkNo);
+
+		if(!chunksStored.contains(fileId, chunkNo)){
+			storeChunk(body,fileId,chunkNo);
+		}
+		sendConfirmation(makeStoredPacket(protocolVersion,fileId,chunkNo), chunkNo);
 
 	}
 
