@@ -59,7 +59,7 @@ public class PutChunkReceive implements Runnable {
 		
 		if (senderId.equals(config.getPeerId())) return;
 		
-		if (protocolVersion.equals(Config.ENH_VERSION)){
+		if (Config.isEnhanced() && protocolVersion.equals(Config.ENH_VERSION)) {
 			// discard chunk if actual rep degree is already greater or equal to the desired degree
 			if (repStatus.getNumConfirms(fileId, chunkNo) >= desiredRepDeg) {
 				return;
@@ -71,7 +71,7 @@ public class PutChunkReceive implements Runnable {
 		filesToNotWatch.remove(fileId);
 		repStatus.putchunk_setDesiredReplicationDeg(desiredRepDeg, fileId, chunkNo);
 
-		if(!chunksStored.contains(fileId, chunkNo)){
+		if (!chunksStored.contains(fileId, chunkNo)){
 			storeChunk(body,fileId,chunkNo);
 		}
 		sendConfirmation(makeStoredPacket(protocolVersion,fileId,chunkNo), chunkNo);
