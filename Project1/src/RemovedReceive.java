@@ -1,16 +1,12 @@
 import utils.FutureBuffer;
 import utils.ThreadUtils;
-
 import java.io.File;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.concurrent.Future;
 
-public class HandleRemoved implements Runnable {
+public class RemovedReceive implements Runnable {
 
     private MulticastSocket mdbSocket;
     private Config config;
@@ -20,7 +16,7 @@ public class HandleRemoved implements Runnable {
     private String fileId;
     private String senderId;
 
-    public HandleRemoved(Config config, ReplicationStatus repStatus, DatagramPacket removedPacket, MulticastSocket mdbSocket){
+    public RemovedReceive(Config config, ReplicationStatus repStatus, DatagramPacket removedPacket, MulticastSocket mdbSocket){
         this.config = config;
         replicationStatus = repStatus;
         this.removedPacket = removedPacket;
@@ -71,7 +67,7 @@ public class HandleRemoved implements Runnable {
                 }
             }
         }else{
-            System.out.println("HandleRemoved: Putchunk received meanwhile");
+            System.out.println("RemovedReceive: Putchunk received meanwhile");
         }
 
     }

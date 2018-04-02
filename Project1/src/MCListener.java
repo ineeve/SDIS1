@@ -1,16 +1,9 @@
-import utils.Pair;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.nio.file.FileSystems;
-import java.nio.file.WatchService;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MCListener implements Runnable {
 
@@ -72,7 +65,7 @@ public class MCListener implements Runnable {
 		} else if (Messages.isGetChunk(packet)) {
 			pool.execute(new GetChunkReceive(config, mdrSocket, packet, chunksStored));
 		} else if (Messages.isRemoved(packet)){
-			pool.execute(new HandleRemoved(config, replicationStatus, packet, mdbSocket));
+			pool.execute(new RemovedReceive(config, replicationStatus, packet, mdbSocket));
 		} else if (Messages.isDelete(packet)) {
 			pool.execute(new DeleteReceive(packet, filesToNotWatch, mcSocket));
 		} else if (Messages.isDeleted(packet)){

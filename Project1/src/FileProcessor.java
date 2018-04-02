@@ -203,17 +203,19 @@ public class FileProcessor{
      *  Delete all files in a folderPath starting with a prefix
      * @param prefix
      * @param folderPath
-     * @return true if any file was deleted, false otherwise.
+     * @return number of chunks deleted
      */
-	public static boolean deleteFilesStartingWith(String prefix, String folderPath) {
+	public static int deleteFilesStartingWith(String prefix, String folderPath) {
+	    int numberOfFilesDeleted = 0;
 		final File folder = new File(folderPath);
 		final File[] files = folder.listFiles((dir, name) -> name.matches(prefix + ".*"));
-		if (files.length == 0) return false;
 		for (final File file : files) {
 		    if (!file.delete() ) {
 		        System.err.println("FileProcessor: Can't remove " + file.getAbsolutePath());
-		    }
+		    }else{
+                numberOfFilesDeleted++;
+            }
 		}
-		return true;
+		return numberOfFilesDeleted;
 	}
 }
