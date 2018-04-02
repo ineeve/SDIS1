@@ -48,6 +48,18 @@ public class ReplicationStatus implements Serializable {
 	    return repDegrees.get(new Pair(fileId,chunkNo)).getLeft();
     }
 
+    public void setDeriredRepDegreeOfFile(String fileId, Byte desiredRepDegree){
+		Iterator it = repDegrees.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry)it.next();
+			Pair<String,Integer> key =  (Pair) pair.getKey();
+			if (key.getLeft().equals(fileId)){
+				Pair<Byte, HashSet<String>> value = (Pair) pair.getValue();
+				value.setLeft(desiredRepDegree);
+			}
+		}
+	}
+
 	public int getNumConfirms(String fileId, int chunkNo) {
 		Pair<Byte, HashSet<String>> pair = repDegrees.get(new Pair<>(fileId, chunkNo));
 		if (pair == null) return 0;
@@ -56,6 +68,18 @@ public class ReplicationStatus implements Serializable {
 			return 0;
 		}
 		return peerIds.size();
+	}
+
+	public void reduceReplicationOfFile(String fileId, String peerId){
+		Iterator it = repDegrees.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry)it.next();
+			Pair<String,Integer> key =  (Pair) pair.getKey();
+			if (key.getLeft().equals(fileId)){
+				Pair<Byte, HashSet<String>> value = (Pair) pair.getValue();
+				value.getRight().remove(peerId);
+			}
+		}
 	}
 
 	public void putchunk_setDesiredReplicationDeg(byte repDeg, String fileId, Integer chunkNo) {

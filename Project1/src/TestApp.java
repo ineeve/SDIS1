@@ -44,6 +44,9 @@ public class TestApp {
 		case DELETE:
 			stub.delete(pathname);
 			break;
+        case DELETEENH:
+            stub.deleteEnh(pathname);
+            break;
 		case RECLAIM:
 			stub.reclaim(maxDiskSpace);
 		case STATE:
@@ -70,7 +73,8 @@ public class TestApp {
 		case BACKUP:
 		case BACKUPENH:
 		case RESTORE:
-        case RESTOREENH:
+		case DELETEENH:
+		case RESTOREENH:
 		case DELETE:
 			if (args.length < 3) {
 				printUsage();

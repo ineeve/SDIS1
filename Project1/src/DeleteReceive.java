@@ -36,7 +36,6 @@ public class DeleteReceive implements Runnable {
 				System.out.println("Sending confirmation of deletion of file: " + fileId);
 				mcSocket.send(confirmDeletePacket);
 				wasSent = true;
-				System.out.println("Confirmed deletion of file: " + fileId);
 			} catch (IOException e) {
 				ThreadUtils.waitBetween(0,400);
 			}
