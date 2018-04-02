@@ -20,7 +20,6 @@ public class DeleteReceive implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("Delete Received");
 		String fileId = getFileId(packet);
 		filesToNotWatch.add(fileId);
 		int numChunksDeleted;
