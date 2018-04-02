@@ -74,7 +74,9 @@ public class MCListener implements Runnable {
 		} else if (Messages.isRemoved(packet)){
 			pool.execute(new HandleRemoved(config, replicationStatus, packet, mdbSocket));
 		} else if (Messages.isDelete(packet)) {
-			pool.execute(new DeleteReceive(config, packet, filesToNotWatch));
+			pool.execute(new DeleteReceive(packet, filesToNotWatch, mcSocket));
+		} else if (Messages.isDeleted(packet)){
+			pool.execute(new DeletedReceive(packet, replicationStatus));
 		} else {
 			System.out.println("Caught unhandled message in MCListener");
 		}

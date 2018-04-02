@@ -2,7 +2,6 @@ import utils.ThreadUtils;
 
 import java.net.MulticastSocket;
 import java.net.DatagramPacket;
-import java.nio.charset.Charset;
 import java.io.File;
 import java.io.IOException;
 
@@ -48,7 +47,7 @@ public class SendRestoreFile implements Runnable{
 	}
 
     private DatagramPacket makeGetChunkPacket(int chunkNo) {
-		byte[] getChunkMsg = Messages.getGetChunkHeader(fileId, chunkNo);
+		byte[] getChunkMsg = Messages.getGETCHUNKHeader(fileId, chunkNo);
 		DatagramPacket packet = new DatagramPacket(getChunkMsg, getChunkMsg.length, config.getMcIP(), config.getMcPort());
 		return packet;
 	}

@@ -5,14 +5,11 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class GetChunkReceive implements Runnable {
 
@@ -110,7 +107,7 @@ public class GetChunkReceive implements Runnable {
 	}
 
 	private byte[] makeByteArrayPacket(byte[] body){
-        byte[] header = Messages.getChunkHeader(fileId,chunkNo);
+        byte[] header = Messages.getCHUNKHeader(fileId,chunkNo);
         byte[] fullPacket = new byte[header.length + body.length];
         System.arraycopy(header,0,fullPacket,0,header.length);
         System.arraycopy(body,0,fullPacket,header.length,body.length);

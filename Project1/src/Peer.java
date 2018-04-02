@@ -177,7 +177,12 @@ public class Peer implements RMIInterface {
 	@Override
 	public void delete(String pathname) throws RemoteException {
 		File file = FileProcessor.loadFile(pathname);
-		pool.execute(new SendDeleteFile(config, mcSocket, file));
+		pool.execute(new SendDeleteFile(Config.ORIG_VERSION, mcSocket, file, repStatus));
+	}
+
+	public void deleteEnh(String pathname) throws RemoteException{
+		File file = FileProcessor.loadFile(pathname);
+		pool.execute(new SendDeleteFile(Config.ENH_VERSION, mcSocket, file, repStatus));
 	}
 
 	@Override

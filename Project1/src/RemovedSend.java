@@ -1,8 +1,6 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
 
 public class RemovedSend implements Runnable {
 
@@ -36,7 +34,7 @@ public class RemovedSend implements Runnable {
     }
 
     private DatagramPacket createPacket(){
-        byte[] removedMsg = Messages.getRemovedHeader(fileId, chunkNo);
+        byte[] removedMsg = Messages.getREMOVEDHeader(fileId, chunkNo);
         return new DatagramPacket(removedMsg, removedMsg.length, config.getMcIP(), config.getMcPort());
     }
 
