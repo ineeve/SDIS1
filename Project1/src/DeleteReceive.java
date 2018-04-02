@@ -22,8 +22,9 @@ public class DeleteReceive implements Runnable {
 	public void run() {
 		String fileId = getFileId(packet);
 		filesToNotWatch.add(fileId);
-		if (deleteChunks(fileId)) {
-			System.out.format("DeleteReceive: Deleting chunks with file ID %s\n", fileId);
+		int numChunksDeleted;
+		if ((numChunksDeleted = deleteChunks(fileId)) > 0) {
+		    System.out.format("%d of %d chunks were deleted", numChunksDeleted, fileId);
 			if (Config.isEnhanced() && getVersion(packet).equals(Config.ENH_VERSION)) {
 				DatagramPacket confirmDeletePacket = makeConfirmationPacket(fileId);
 				sendConfirmPacket(confirmDeletePacket, fileId);
@@ -48,9 +49,9 @@ public class DeleteReceive implements Runnable {
 	/**
 	 * Delete all stored chunks of a given file
 	 * @param fileId
-	 * @return true if any file was deleted
+	 * @return number of files deleted
 	 */
-	private boolean deleteChunks(String fileId) {
+	private int deleteChunks(String fileId) {
 		String folder = String.format("Peer_%s/stored", Config.getPeerId());
 		return FileProcessor.deleteFilesStartingWith(fileId, folder);
 	}

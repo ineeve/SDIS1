@@ -1,14 +1,10 @@
 import utils.FutureBuffer;
 import utils.ThreadUtils;
-
 import java.io.File;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.concurrent.Future;
 
 public class RemovedReceive implements Runnable {
 
@@ -71,7 +67,7 @@ public class RemovedReceive implements Runnable {
                 }
             }
         }else{
-            System.out.println("HandleRemoved: Putchunk received meanwhile");
+            System.out.println("RemovedReceive: Putchunk received meanwhile");
         }
 
     }
