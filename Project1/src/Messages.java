@@ -29,7 +29,15 @@ public class Messages {
 	public static boolean isDelete(DatagramPacket packet) {
 		return getType(packet).equals(DELETE);
 	}
+	
+	public static boolean isEnhanced(DatagramPacket packet) {
+		return getVersion(packet).equals(Config.ENH_VERSION);
+	}
 
+	private static String getVersion(DatagramPacket packet) {
+		String msg = new String(packet.getData(), Charset.forName("ISO_8859_1")).trim();
+		return msg.split(" ")[1];
+	}
 	private static String getType(DatagramPacket packet) {
 		String msg = new String(packet.getData(), Charset.forName("ISO_8859_1")).trim();
 		return msg.split(" ")[0];

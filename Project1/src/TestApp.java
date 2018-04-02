@@ -93,7 +93,7 @@ public class TestApp {
 			System.exit(1);
 		}
 		
-		if (operation == Operation.BACKUP) {
+		if (operation == Operation.BACKUP || operation == Operation.BACKUPENH) {
 			if (args.length != 4) {
 				printUsage();
 				System.exit(1);

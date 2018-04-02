@@ -1,5 +1,4 @@
 import java.rmi.Remote;
-import java.rmi.RemoteException;
 
 public interface RMIInterface extends Remote{
 	public void backup(String pathname, byte desiredRepDegree) throws java.rmi.RemoteException;
