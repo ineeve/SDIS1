@@ -12,13 +12,14 @@ public class SendDeleteFile implements Runnable {
 	private File file;
 	private String fileId;
 	private String version;
+	private ReplicationStatus repStatus;
 
 	public SendDeleteFile(String version, MulticastSocket mcSocket, File file, ReplicationStatus replicationStatus) {
-		FileProcessor fileProcessor = new FileProcessor();
 		this.version = version;
 		this.mcSocket = mcSocket;
 		this.file = file;
-		this.fileId = fileProcessor.getFileId(file);
+		this.fileId = FileProcessor.getFileId(file);
+		this.repStatus = replicationStatus;
 		replicationStatus.setDeriredRepDegreeOfFile(fileId, (byte) 0);
 	}
 
@@ -26,6 +27,7 @@ public class SendDeleteFile implements Runnable {
 	public void run() {
 		DatagramPacket packet = makeDeletePacket();
 		sendPacket(packet);
+		repStatus.addDeleteWatch(fileId);
 	}
 
 	/**

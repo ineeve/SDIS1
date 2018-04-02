@@ -25,6 +25,8 @@ public class ReplicationStatus implements Serializable {
 	private AtomicLong bytesReserved;
 	
 	private ArrayList<BackedUpFile> backedUpFiles = new ArrayList<BackedUpFile>();
+
+	private ArrayList<String> filesToDelete;
 	
 	public ReplicationStatus(String path) {
 		repDegrees = new ConcurrentHashMap<>();
@@ -159,5 +161,15 @@ public class ReplicationStatus implements Serializable {
 
 	public ArrayList<BackedUpFile> getFiles() {
 		return backedUpFiles;
+	}
+
+	public void addDeleteWatch(String fileId) {
+		filesToDelete.add(fileId);
+	}
+
+	public void checkFilesToDelete() {
+		for (String fileId : filesToDelete) {
+			
+		}
 	}
 }

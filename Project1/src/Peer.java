@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Peer implements RMIInterface {
 
@@ -21,6 +23,8 @@ public class Peer implements RMIInterface {
 	private MCListener mcListener;
 	private MDBListener mdbListener;
 	private MDRListener mdrListener;
+	
+	private DeleteWatcher deleteWatcher;
 	
 	private MulticastSocket mcSocket;
 	private MulticastSocket mdbSocket;
@@ -58,6 +62,10 @@ public class Peer implements RMIInterface {
 		mdrListenerThr.start();
 
 		TCP_PORT = 4444;
+		
+		deleteWatcher = new DeleteWatcher(repStatus);
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+		executor.scheduleAtFixedRate(deleteWatcher, 0, 30, TimeUnit.SECONDS);
 	}
 
 	private void initiateTCPServer() {
