@@ -132,7 +132,7 @@ public class Peer implements RMIInterface {
 	public void backup(String pathname, byte desiredRepDegree) throws RemoteException {
 		File file = FileProcessor.loadFile(pathname);
 		if (file == null) {
-			System.err.println("File not found.");
+			System.err.println("Peer: File not found.");
 			return;
 		}
         pool.execute(new StoreFile(config, mdbSocket,file, desiredRepDegree, repStatus));
@@ -142,7 +142,7 @@ public class Peer implements RMIInterface {
 	public void restore(String pathname) throws RemoteException {
 		File file = FileProcessor.loadFile(pathname);
 		if (file == null) {
-			System.err.println("File not found.");
+			System.err.println("Peer: File not found.");
 			return;
 		}
 		pool.execute(new SendRestoreFile(config, mcSocket, file, chunksRequested));
