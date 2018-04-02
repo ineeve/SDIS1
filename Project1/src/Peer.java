@@ -125,6 +125,7 @@ public class Peer implements RMIInterface {
 	         System.out.println("Server ready"); 
 	      } catch (Exception e) { 
 	         System.err.println("Server exception: Run rmiregistry on bin folder");
+	         System.exit(-1);
 	      }
 	}
 

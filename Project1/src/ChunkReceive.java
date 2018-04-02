@@ -36,7 +36,7 @@ public class ChunkReceive implements Runnable{
     private boolean parseReceivedChunk(){
         String msg = new String(Arrays.copyOfRange(chunkPacket.getData(), 0, chunkPacket.getLength()), StandardCharsets.ISO_8859_1);
 		String crlf = new String(CRLF);
-		String[] splitMessage = msg.trim().split(crlf + crlf);
+		String[] splitMessage = msg.split(crlf + crlf);
         String head[] = splitMessage[0].split("\\s+");
         String senderId = head[2];
         if (senderId.equals(config.getPeerId())) return false;

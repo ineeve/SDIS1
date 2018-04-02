@@ -35,14 +35,16 @@ public class StoreFile implements Runnable {
 		fileData = FileProcessor.getDataFromFuture(futureBuffer);
 		ArrayList<byte[]> filePortions = splitFile();
 		sendChunks(filePortions);*/
-
+        System.out.println("File length: " + file.length());
         ArrayList<FutureBuffer> futures = FileProcessor.readFileChunksAsync(file);
         sendChunks(futures);
 	}
 
+	/*
 	private boolean filePortionIsFullSize(int i) {
 		return fileData.length - i >= Config.MAX_CHUNK_SIZE;
 	}
+
 
 	private ArrayList<byte[]> splitFile() {
 		ArrayList<byte[]> result = new ArrayList<>();
@@ -58,7 +60,7 @@ public class StoreFile implements Runnable {
 		System.arraycopy(fileData, i, lastFilePortion, 0, lastChunkLength);
 		result.add(lastFilePortion);
 		return result;
-	}
+	}*/
 
 	/*private void sendChunks(ArrayList<byte[]> filePortions) {
         String fileId = FileProcessor.getFileId(file);
