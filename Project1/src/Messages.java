@@ -52,5 +52,8 @@ public class Messages {
     public static byte[] getChunkHeader(String fileId, Integer chunkNo){
 		return getBytesFromString(String.format("CHUNK 1.0 %s %s %d %s%s", Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
 	}
+	public static byte[] getGetChunkHeader(String fileId, Integer chunkNo){
+		return getBytesFromString(String.format("GETCHUNK 1.0 %s %s %s %s%s", Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
+	}
 }
 
