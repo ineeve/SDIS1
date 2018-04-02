@@ -42,13 +42,13 @@ public class SendRestoreFile implements Runnable{
                     ThreadUtils.waitBetween(10,400);
 				}
             }
+            System.out.println("Chunk " + chunkNo + " requested to restore");
             chunksRequested.add(fileId, chunkNo);
         }
 	}
 
     private DatagramPacket makeGetChunkPacket(int chunkNo) {
-		String getChunkMsgStr = "GETCHUNK 1.0 " + config.getPeerId() + " " + fileId + " " + chunkNo + " " + CRLF + CRLF;
-		byte[] getChunkMsg = getChunkMsgStr.getBytes(Charset.forName("ISO_8859_1"));
+		byte[] getChunkMsg = Messages.getGetChunkHeader(fileId, chunkNo);
 		DatagramPacket packet = new DatagramPacket(getChunkMsg, getChunkMsg.length, config.getMcIP(), config.getMcPort());
 		return packet;
 	}

@@ -7,7 +7,7 @@ public class ChunksRequested {
     private ConcurrentHashMap<String, HashSet<Integer>> chunksRequested;
 
     public ChunksRequested(){
-        chunksRequested = new ConcurrentHashMap<String,HashSet<Integer>>();
+        chunksRequested = new ConcurrentHashMap<>();
     }
 
     public void add(String fileId, int chunkNo){

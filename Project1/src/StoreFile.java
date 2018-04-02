@@ -15,7 +15,7 @@ public class StoreFile implements Runnable {
 
 	private File file;
 	private byte replicationDegree;
-	private byte[] fileData;
+	//private byte[] fileData;
 
 	private ReplicationStatus repStatus;
 	
