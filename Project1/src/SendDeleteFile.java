@@ -7,18 +7,19 @@ import java.nio.charset.Charset;
 import utils.ThreadUtils;
 
 public class SendDeleteFile implements Runnable {
-	
-	private Config config;
+
 	private MulticastSocket mcSocket;
 	private File file;
 	private String fileId;
+	private String version;
 
-	public SendDeleteFile(Config config, MulticastSocket mcSocket, File file) {
+	public SendDeleteFile(String version, MulticastSocket mcSocket, File file, ReplicationStatus replicationStatus) {
 		FileProcessor fileProcessor = new FileProcessor();
-		this.config = config;
+		this.version = version;
 		this.mcSocket = mcSocket;
 		this.file = file;
 		this.fileId = fileProcessor.getFileId(file);
+		replicationStatus.setDeriredRepDegreeOfFile(fileId, (byte) 0);
 	}
 
 	@Override
@@ -49,8 +50,8 @@ public class SendDeleteFile implements Runnable {
 	}
 
 	private DatagramPacket makeDeletePacket() {
-		byte[] deleteMsg = Messages.getDELETEHeader(fileId);
-		DatagramPacket packet = new DatagramPacket(deleteMsg, deleteMsg.length, config.getMcIP(), config.getMcPort());
+		byte[] deleteMsg = Messages.getDELETEHeader(fileId, version);
+		DatagramPacket packet = new DatagramPacket(deleteMsg, deleteMsg.length, Config.getMcIP(), Config.getMcPort());
 		return packet;
 	}
 }
