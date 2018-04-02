@@ -43,17 +43,21 @@ public class Messages {
 		return getBytesFromString(String.format("PUTCHUNK %s %s %s %d %d %s%s", version, Config.getPeerId(), fileId, chunkNo, repDeg, CRLF, CRLF));
 	}
 	public static byte[] getDELETEHeader(String fileId){
-		return getBytesFromString(String.format("DELETE 1.0 %s %s %s%s", Config.getPeerId(), fileId, CRLF, CRLF));
+		return getBytesFromString(String.format("DELETE %s %s %s %s%s",Config.ORIG_VERSION, Config.getPeerId(), fileId, CRLF, CRLF));
 	}
-	public static byte[] getRemovedHeader(String fileId, Integer chunkNo){
-	    return getBytesFromString(String.format("REMOVED 1.0 %s %s %s %s%s", Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
+	public static byte[] getREMOVEDHeader(String fileId, Integer chunkNo){
+	    return getBytesFromString(String.format("REMOVED %s %s %s %s %s%s",Config.ORIG_VERSION, Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
     }
 
     public static byte[] getChunkHeader(String fileId, Integer chunkNo){
-		return getBytesFromString(String.format("CHUNK 1.0 %s %s %d %s%s", Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
+		return getBytesFromString(String.format("CHUNK %s %s %s %d %s%s",Config.ORIG_VERSION, Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
 	}
-	public static byte[] getGetChunkHeader(String fileId, Integer chunkNo){
-		return getBytesFromString(String.format("GETCHUNK 1.0 %s %s %s %s%s", Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
+	public static byte[] getGETCHUNKHeader(String fileId, Integer chunkNo){
+		return getBytesFromString(String.format("GETCHUNK %s %s %s %s %s%s",Config.ORIG_VERSION, Config.getPeerId(), fileId, chunkNo, CRLF, CRLF));
+	}
+	
+	public static byte[] getDELETEDHeader(String fileId){
+		return getBytesFromString(String.format("DELETED %s %s %s %s%s", Config.ENH_VERSION, Config.getPeerId(), fileId, CRLF, CRLF));
 	}
 }
 

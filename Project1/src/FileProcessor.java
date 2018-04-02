@@ -199,18 +199,21 @@ public class FileProcessor{
     	}
     }
 
-	public static void deleteFilesStartingWith(String prefix, String folderPath) {
+    /**
+     *  Delete all files in a folderPath starting with a prefix
+     * @param prefix
+     * @param folderPath
+     * @return true if any file was deleted, false otherwise.
+     */
+	public static boolean deleteFilesStartingWith(String prefix, String folderPath) {
 		final File folder = new File(folderPath);
-		final File[] files = folder.listFiles( new FilenameFilter() {
-		    @Override
-		    public boolean accept(final File dir, final String name) {
-		        return name.matches(prefix + ".*");
-		    }
-		} );
+		final File[] files = folder.listFiles((dir, name) -> name.matches(prefix + ".*"));
+		if (files.length == 0) return false;
 		for (final File file : files) {
 		    if (!file.delete() ) {
 		        System.err.println("FileProcessor: Can't remove " + file.getAbsolutePath());
 		    }
 		}
+		return true;
 	}
 }
