@@ -22,9 +22,9 @@ public class DeleteReceive implements Runnable {
 	public void run() {
 		String fileId = getFileId(packet);
 		filesToNotWatch.add(fileId);
-		if (deleteChunks(fileId)){
-			DatagramPacket confirmDeletePacket = makeConfirmationPacket(fileId);
-			if (Config.isEnhanced()) {
+		if (deleteChunks(fileId)) {
+			if (Config.isEnhanced() && getVersion(packet) == Config.ENH_VERSION) {
+				DatagramPacket confirmDeletePacket = makeConfirmationPacket(fileId);
 				sendConfirmPacket(confirmDeletePacket, fileId);
 			}
 		}
@@ -58,6 +58,12 @@ public class DeleteReceive implements Runnable {
 		String msgStr = new String(packet.getData(), Charset.forName("ISO_8859_1")).trim();
 		String fileId = msgStr.split(" ")[3];
 		return fileId;
+	}
+	
+	private String getVersion(DatagramPacket packet) {
+		String msgStr = new String(packet.getData(), Charset.forName("ISO_8859_1")).trim();
+		String version = msgStr.split(" ")[1];
+		return version;
 	}
 
 	private DatagramPacket makeConfirmationPacket(String fileId){
