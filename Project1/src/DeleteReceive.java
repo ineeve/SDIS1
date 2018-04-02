@@ -25,7 +25,7 @@ public class DeleteReceive implements Runnable {
 		int numChunksDeleted;
 		if ( (numChunksDeleted = deleteChunks(fileId)) > 0) {
 		    System.out.println(numChunksDeleted + " chunks of " + fileId + " were deleted");
-			if (Config.isEnhanced() && getVersion(packet) == Config.ENH_VERSION) {
+			if (Config.isEnhanced() && getVersion(packet).equals(Config.ENH_VERSION)) {
 				DatagramPacket confirmDeletePacket = makeConfirmationPacket(fileId);
 				sendConfirmPacket(confirmDeletePacket, fileId);
 			}

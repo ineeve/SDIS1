@@ -13,6 +13,8 @@ public class OperationFactory {
 			return Operation.RESTOREENH;
 		case "DELETE":
 			return Operation.DELETE;
+		case "DELETEENH":
+			return Operation.DELETEENH;
 		case "RECLAIM":
 			return Operation.RECLAIM;
 		case "STATE":
