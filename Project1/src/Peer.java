@@ -90,7 +90,7 @@ public class Peer implements RMIInterface {
 	private Config parseArgs(String[] args) throws Exception {
 		if (args.length < 8) {
 			System.out.println("Usage:");
-			System.out.println("java Peerid Version MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
+			System.out.println("java Peer Peerid Version MC_ip MC_port MDB_ip MDB_port MDR_ip MDR_port");
 			System.exit(1);
 		}
 		Config.setPeer(args[0]);
