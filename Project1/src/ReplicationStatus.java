@@ -42,6 +42,23 @@ public class ReplicationStatus implements Serializable {
                                 (e1, e2) -> e1, LinkedHashMap::new));
     }
 
+    public int getReplicationDegreeOfFile(String fileId){
+		Iterator it = repDegrees.entrySet().iterator();
+		int maxRepDegree = 0;
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry)it.next();
+			Pair<String,Integer> key =  (Pair) pair.getKey();
+			if (key.getLeft().equals(fileId)){
+				Pair<Byte, HashSet<String>> value = (Pair) pair.getValue();
+				int currentRepDegree = value.getRight().size();
+				if (currentRepDegree > maxRepDegree){
+					maxRepDegree = currentRepDegree;
+				}
+			}
+		}
+		return maxRepDegree;
+	}
+
 
 	public void decrementLocalCount(String senderId, String fileId, int chunkNo){
 		repDegrees.get(new Pair(fileId,chunkNo)).getRight().remove(senderId);
