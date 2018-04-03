@@ -1,4 +1,8 @@
 import utils.Pair;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -32,11 +36,13 @@ public class ReclaimDiskSpace implements Runnable {
             Pair<Byte, HashSet<String>> value = entry.getValue();
             System.out.println("ReclaimDiskSpace: Removing file with " + value.getLeft() + "/" + value.getRight().size());
             String filePath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(key.getLeft(), key.getRight());
-            long fileLength = FileProcessor.loadFile(filePath).length();
-            replicationStatus.decrementBytesUsed(fileLength);
-            replicationStatus.removeFuture(key.getLeft(),key.getRight());
-            FileProcessor.deleteFile(filePath);
-            if (replicationStatus.getBytesUsed() < replicationStatus.getBytesReserved()) break;
+            File file = FileProcessor.loadFile(filePath);
+            if (file != null){
+                replicationStatus.decrementBytesUsed(file.length());
+                replicationStatus.removeFuture(key.getLeft(),key.getRight());
+                FileProcessor.deleteFile(filePath);
+                if (replicationStatus.getBytesUsed() < replicationStatus.getBytesReserved()) break;
+            }
         }
     }
 }
