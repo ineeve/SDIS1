@@ -1,24 +1,11 @@
-# SDIS1
+Abrir terminal na pasta src.
 
-## Client execution
+Compilar
+- javac *.java
 
-java Client <host_name> <port_number> \<oper> \<opnd>*  
->where  
->> <host_name> is the name of the host running the server;  
->> <port_number> is the server port;  
->> \<oper> is either ‘‘register’’ or ‘‘lookup’’  
->> \<opnd>* is the list of arguments  
->>> \<plate number> \<owner name>, for register;  
->>> \<plate number>, for lookup.
-
-Example:  
-> localhost 8080 register 58-AZ-85 Americo
-
-## Server execution
-
-java Server <port_number>  
-> where  
->> <port_number> is the port number on which the server waits for requests.
-
-Example:  
-> 8080
+Executar:
+1) Limpar estado anterior dos Peers: ./reset_peers.sh
+2) Iniciar registo RMI: rmiregistry
+3) Iniciar um Peer: ./start_peer.sh <peer_id> <version>
+4) Iniciar a aplica��o de testes: java TestApp <hostname>//Peer_<peer_id> <OPERATION> <opnd_1> <opnd_2>
+--- onde OPERATION = {BACKUP, BACKUPENH, RESTORE, RESTOREENH, DELETE, DELETEENH, RECLAIM, STATE}
