@@ -5,11 +5,9 @@ import java.util.Map;
 public class ReclaimDiskSpace implements Runnable {
 
     private ReplicationStatus replicationStatus;
-    private ChunksStoredFutures chunksStoredFutures;
 
-    public ReclaimDiskSpace(ReplicationStatus replicationStatus, ChunksStoredFutures chunksStoredFutures) {
+    public ReclaimDiskSpace(ReplicationStatus replicationStatus) {
         this.replicationStatus = replicationStatus;
-        this.chunksStoredFutures = chunksStoredFutures;
     }
 
     @Override
@@ -36,8 +34,8 @@ public class ReclaimDiskSpace implements Runnable {
             String filePath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(key.getLeft(), key.getRight());
             long fileLength = FileProcessor.loadFile(filePath).length();
             replicationStatus.decrementBytesUsed(fileLength);
+            replicationStatus.removeFuture(key.getLeft(),key.getRight());
             FileProcessor.deleteFile(filePath);
-            chunksStoredFutures.removeIfExists(key.getLeft(),key.getRight());
             if (replicationStatus.getBytesUsed() < replicationStatus.getBytesReserved()) break;
         }
     }

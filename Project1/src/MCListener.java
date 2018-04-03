@@ -12,7 +12,6 @@ public class MCListener implements Runnable {
     private ExecutorService pool = Executors.newCachedThreadPool();
 	
 	private ReplicationStatus replicationStatus;
-    private ChunksStoredFutures chunksStoredFutures;
 
 	private MulticastSocket mcSocket;
 	private MulticastSocket mdrSocket;
@@ -20,10 +19,9 @@ public class MCListener implements Runnable {
 
 	private Set<String> filesToNotWatch; //this is thread-safe
 
-	public MCListener(ReplicationStatus replicationStatus, Set<String> filesToNotWatch, ChunksStoredFutures chunksStoredFutures) {
+	public MCListener(ReplicationStatus replicationStatus, Set<String> filesToNotWatch) {
 		this.filesToNotWatch = filesToNotWatch;
 		this.replicationStatus = replicationStatus;
-		this.chunksStoredFutures = chunksStoredFutures;
 		try {
 			mcSocket = new MulticastSocket(Config.getMcPort());
 			mcSocket.joinGroup(Config.getMcIP());
@@ -56,7 +54,7 @@ public class MCListener implements Runnable {
 		if (Messages.isStored(packet)) {
 			pool.execute(new StoredReceive(packet, replicationStatus));
 		} else if (Messages.isGetChunk(packet)) {
-			pool.execute(new GetChunkReceive(mdrSocket, packet, chunksStoredFutures));
+			pool.execute(new GetChunkReceive(mdrSocket, packet,replicationStatus));
 		} else if (Messages.isRemoved(packet)){
 			pool.execute(new RemovedReceive(replicationStatus, packet, mdbSocket));
 		} else if (Messages.isDelete(packet)) {
