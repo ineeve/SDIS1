@@ -7,14 +7,11 @@ import java.net.MulticastSocket;
 
 public class StoreChunk implements Runnable {
 
-	private static final String CRLF = "\r\n";
-
-    private byte[] body;
+	private byte[] body;
     private FutureBuffer future;
 
     private MulticastSocket mdbSocket;
 	private String version;
-	private Config config;
 
 	private String fileId;
 	private int chunkNo;

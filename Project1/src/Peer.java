@@ -45,7 +45,7 @@ public class Peer implements RMIInterface {
 		createFolders();
 		createSockets();
 		repStatus = ReplicationStatusFactory.getNew(Config.getPeerDir());
-		filesToNotWatch = new ConcurrentHashMap().newKeySet();
+		filesToNotWatch = ConcurrentHashMap.newKeySet();
 		filesRestored = new FilesRestored();
 		chunksStoredFutures = new ChunksStoredFutures();
 
