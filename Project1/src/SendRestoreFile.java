@@ -7,7 +7,6 @@ import java.io.IOException;
 
 public class SendRestoreFile implements Runnable{
 
-    private static final String CRLF = "\r\n";
    
     private MulticastSocket mcSocket;
     private File file;

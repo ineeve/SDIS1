@@ -4,9 +4,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.*;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.io.IOException;
@@ -15,9 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class FileProcessor{
-
-    private static Scanner terminal = new Scanner(System.in);
+public class FileProcessor {
 
     public static String createChunkName(String fileId, Integer chunkNo){
         return fileId + "_" + chunkNo + ".out";

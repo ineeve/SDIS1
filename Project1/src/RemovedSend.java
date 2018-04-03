@@ -4,7 +4,6 @@ import java.net.MulticastSocket;
 
 public class RemovedSend implements Runnable {
 
-    private static final String CRLF = "\r\n";
     private MulticastSocket mcSocket;
     private String fileId;
     private Integer chunkNo;

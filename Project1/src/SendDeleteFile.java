@@ -2,14 +2,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
-import java.nio.charset.Charset;
 
 import utils.ThreadUtils;
 
 public class SendDeleteFile implements Runnable {
 
 	private MulticastSocket mcSocket;
-	private File file;
 	private String fileId;
 	private String version;
 	private ReplicationStatus repStatus;
@@ -17,7 +15,6 @@ public class SendDeleteFile implements Runnable {
 	public SendDeleteFile(String version, MulticastSocket mcSocket, File file, ReplicationStatus replicationStatus) {
 		this.version = version;
 		this.mcSocket = mcSocket;
-		this.file = file;
 		this.fileId = FileProcessor.getFileId(file);
 		this.repStatus = replicationStatus;
 		replicationStatus.setDeriredRepDegreeOfFile(fileId, (byte) 0);

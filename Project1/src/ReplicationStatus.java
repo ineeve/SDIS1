@@ -105,10 +105,10 @@ public class ReplicationStatus implements Serializable {
 
 
 	public void decrementLocalCount(String senderId, String fileId, int chunkNo){
-		repDegrees.get(new Pair(fileId,chunkNo)).getRight().remove(senderId);
+		repDegrees.get(new Pair<String, Integer>(fileId,chunkNo)).getRight().remove(senderId);
 	}
 	public Byte getDesiredReplicationDeg(String fileId, Integer chunkNo){
-	    return repDegrees.get(new Pair(fileId,chunkNo)).getLeft();
+	    return repDegrees.get(new Pair<String, Integer>(fileId,chunkNo)).getLeft();
     }
 
     public void setDeriredRepDegreeOfFile(String fileId, Byte desiredRepDegree){
