@@ -70,22 +70,7 @@ public class AcceptClientConnection implements Runnable {
 
     }
 
-    private boolean parseReceivedChunk(){
-        /*String msg = new String(bytesReceived, Charset.forName("ISO_8859_1"));
-        String crlf = new String(CRLF);
-        String[] splitMessage = msg.split(crlf + crlf);
-        String head[] = splitMessage[0].split("\\s+");
-        fileId = head[3];
-        chunkNo = Integer.parseInt(head[4]);
-        if (!chunksRequested.wasRequested(fileId,chunkNo)) return false;
-        if (filesRestored.containsChunk(fileId, chunkNo)) return false;
-        byte[] body = splitMessage[1].getBytes(Charset.forName("ISO_8859_1"));
-        filesRestored.addChunk(fileId, chunkNo, body);
-
-        if (body.length < Config.MAX_CHUNK_SIZE){
-            filesRestored.setReceivedLastChunk(fileId);
-        }
-        return true;*/
+    private boolean parseReceivedChunk() {
         String msg = new String(packetReceived, StandardCharsets.ISO_8859_1);
         String crlf = new String(CRLF);
         String[] splitMessage = msg.split(crlf + crlf);
