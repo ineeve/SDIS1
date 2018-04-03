@@ -5,7 +5,7 @@ import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
-public class StoreFile implements Runnable {
+public class SendStoreFile implements Runnable {
 
 	private ExecutorService pool;
 	
@@ -18,8 +18,8 @@ public class StoreFile implements Runnable {
 	private ReplicationStatus repStatus;
 
 	
-	public StoreFile(MulticastSocket mdbSocket, String version, File file,
-                     byte replicationDegree, ReplicationStatus repStatus) {
+	public SendStoreFile(MulticastSocket mdbSocket, String version, File file,
+						 byte replicationDegree, ReplicationStatus repStatus) {
 		this.mdbSocket = mdbSocket;
 		this.version = version;
 		this.file = file;

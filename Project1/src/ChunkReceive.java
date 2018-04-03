@@ -59,7 +59,7 @@ public class ChunkReceive implements Runnable{
         Path outputPath = Paths.get(Config.getPeerDir() + "restored/" + fileId);
         ArrayList<byte[]> fileChunks = (ArrayList<byte[]>) filesRestored.getFile(fileId).clone();
         if (fileChunks.size() > 0){
-            ArrayList<Future<Integer>> futures = FileProcessor.writeFileAsync(outputPath,fileChunks,Config.MAX_CHUNK_SIZE);
+            ArrayList<Future<Integer>> futures = FileProcessor.writeFileAsync(outputPath,fileChunks);
             if (futures != null){
                 chunksRequested.clear(fileId);
                 filesRestored.removeFile(fileId);

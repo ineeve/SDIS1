@@ -156,7 +156,7 @@ public class Peer implements RMIInterface {
 			System.err.println("Peer: File not found.");
 			return;
 		}
-        pool.execute(new StoreFile(mdbSocket, Config.ORIG_VERSION, file, desiredRepDegree, repStatus));
+        pool.execute(new SendStoreFile(mdbSocket, Config.ORIG_VERSION, file, desiredRepDegree, repStatus));
 	}
 	
 	@Override
@@ -166,7 +166,7 @@ public class Peer implements RMIInterface {
 			System.err.println("Peer: File not found.");
 			return;
 		}
-        pool.execute(new StoreFile(mdbSocket, Config.ENH_VERSION, file, desiredRepDegree, repStatus));
+        pool.execute(new SendStoreFile(mdbSocket, Config.ENH_VERSION, file, desiredRepDegree, repStatus));
 	}
 
 	@Override

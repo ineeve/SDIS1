@@ -22,7 +22,7 @@ public class TestFileProcessor {
 		
 		// write
 		Path path = Paths.get("new/" + args[0]);
-		FileProcessor.writeFileAsync(path, bodies, Config.MAX_CHUNK_SIZE);
+		FileProcessor.writeFileAsync(path, bodies);
 	}
 
 }

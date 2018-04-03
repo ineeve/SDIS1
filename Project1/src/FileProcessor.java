@@ -23,10 +23,9 @@ public class FileProcessor {
      * Writes a file asynchronously
      * @param path output path to write the file into
      * @param chunksToWrite ArrayList with all the chunks that make the file
-     * @param chunkSizes Max size of each chunk
      * @return true if file is being created, false otherwise.
      */
-    public static ArrayList<Future<Integer>> writeFileAsync(Path path, ArrayList<byte[]> chunksToWrite, int chunkSizes){
+    public static ArrayList<Future<Integer>> writeFileAsync(Path path, ArrayList<byte[]> chunksToWrite){
         AsynchronousFileChannel fileChannel = null;
         try {
             fileChannel = AsynchronousFileChannel.open(path,StandardOpenOption.CREATE, StandardOpenOption.WRITE);
@@ -35,11 +34,12 @@ public class FileProcessor {
             return null;
         }
         ArrayList<Future<Integer>> futures = new ArrayList<>();
+
         if (chunksToWrite.size() > 0){
             long position = 0;
             for (int i = 0; i < chunksToWrite.size(); i++){
                 byte[] chunkToWrite = chunksToWrite.get(i);
-                ByteBuffer buffer = ByteBuffer.allocate(chunkSizes);
+                ByteBuffer buffer = ByteBuffer.allocate(chunkToWrite.length);
                 buffer.put(chunkToWrite);
                 buffer.flip();
                 futures.add(fileChannel.write(buffer, position));
