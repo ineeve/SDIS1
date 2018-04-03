@@ -37,6 +37,7 @@ public class ReplicationStatus implements Serializable {
 	    setOutputStream(path);
 	    bytesUsed = new AtomicLong(0);
 	    bytesReserved = new AtomicLong(Long.MAX_VALUE);
+	    chunksStored = new ConcurrentHashMap<>();
 	}
 
 	public void removeFuture(String fileId, Integer chunkNo){
