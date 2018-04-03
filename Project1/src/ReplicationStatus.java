@@ -25,8 +25,6 @@ public class ReplicationStatus implements Serializable {
 	private transient ObjectOutputStream out;
 	private AtomicLong bytesUsed;
 	private AtomicLong bytesReserved;
-	
-	private ArrayList<BackedUpFile> backedUpFiles = new ArrayList<BackedUpFile>();
 
 	private ArrayList<String> filesToDelete = new ArrayList<String>();
 
@@ -163,6 +161,9 @@ public class ReplicationStatus implements Serializable {
 	}
 
 	public ReplicationStatus setOutputStream(String path) {
+		if (chunksStored == null){
+			chunksStored = new ConcurrentHashMap<>();
+		}
 		try {
 			FileOutputStream fileOut = new FileOutputStream(path);
 			out = new ObjectOutputStream(fileOut);
@@ -208,21 +209,6 @@ public class ReplicationStatus implements Serializable {
         this.bytesReserved.set(bytesReserved);
     }
 
-	public void backupFile(String pathname, String fileId, byte desiredRepDegree) {
-		backedUpFiles.add(new BackedUpFile(pathname, fileId, desiredRepDegree));
-	}
-
-	public void setNumChunks(String fileId, int chunkNo) {
-		for (BackedUpFile file : backedUpFiles) {
-			if (file.getFileId() == fileId) {
-				file.initChunks(chunkNo);
-			}
-		}
-	}
-
-	public ArrayList<BackedUpFile> getFiles() {
-		return backedUpFiles;
-	}
 
 	public void addDeleteWatch(String fileId) {
 		filesToDelete.add(fileId);

@@ -43,7 +43,6 @@ public class SendStoreFile implements Runnable {
 			pool.execute(new StoreChunk(mdbSocket, version, fileId, chunkNo, replicationDegree, repStatus, filePortion));
 			chunkNo++;
 		}
-		repStatus.setNumChunks(fileId, chunkNo);
 	}
 
 }

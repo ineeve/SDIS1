@@ -41,11 +41,7 @@ public class GetChunkReceive implements Runnable {
 		chunkNo = Integer.parseInt(head[4]);
 		String chunkFilePath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
 
-		boolean success = replicationStatus.getFuture(fileId,chunkNo);
-		if (!success) {
-            System.err.println("GetChunkReceive: Could not get future for: " + FileProcessor.createChunkName(fileId,chunkNo));
-            return;
-        }
+		replicationStatus.getFuture(fileId,chunkNo);
 		Path path = Paths.get(chunkFilePath);
 		byte[] data;
 		try {
