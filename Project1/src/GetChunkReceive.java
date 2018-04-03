@@ -14,18 +14,18 @@ import java.util.Arrays;
 public class GetChunkReceive implements Runnable {
 
 	private static final String CRLF = "\r\n";
-	
+
 	private DatagramPacket getChunkPacket;
 	private MulticastSocket mdrSocket;
-	private ChunksStoredFutures chunksStoredFutures;
+	private ReplicationStatus replicationStatus;
 
 	private String fileId;
 	private Integer chunkNo;
 
-	public GetChunkReceive(MulticastSocket mdrSocket, DatagramPacket packet, ChunksStoredFutures chunksStoredFutures) {
+	public GetChunkReceive(MulticastSocket mdrSocket, DatagramPacket packet, ReplicationStatus replicationStatus) {
 		this.getChunkPacket = packet;
 		this.mdrSocket = mdrSocket;
-		this.chunksStoredFutures = chunksStoredFutures;
+		this.replicationStatus = replicationStatus;
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class GetChunkReceive implements Runnable {
 		chunkNo = Integer.parseInt(head[4]);
 		String chunkFilePath = Config.getPeerDir() + "stored/" + FileProcessor.createChunkName(fileId,chunkNo);
 
-		boolean success = chunksStoredFutures.getFuture(fileId,chunkNo);
+		boolean success = replicationStatus.getFuture(fileId,chunkNo);
 		if (!success) {
             System.err.println("GetChunkReceive: Could not get future for: " + FileProcessor.createChunkName(fileId,chunkNo));
             return;

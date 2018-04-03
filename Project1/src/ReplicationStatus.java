@@ -5,6 +5,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -27,12 +29,46 @@ public class ReplicationStatus implements Serializable {
 	private ArrayList<BackedUpFile> backedUpFiles = new ArrayList<BackedUpFile>();
 
 	private ArrayList<String> filesToDelete = new ArrayList<String>();
+
+	private transient ConcurrentHashMap<String, ConcurrentHashMap<Integer, Future<Integer>>> chunksStored;
 	
 	public ReplicationStatus(String path) {
 		repDegrees = new ConcurrentHashMap<>();
 	    setOutputStream(path);
 	    bytesUsed = new AtomicLong(0);
 	    bytesReserved = new AtomicLong(Long.MAX_VALUE);
+	}
+
+	public void removeFuture(String fileId, Integer chunkNo){
+	    getFuture(fileId, chunkNo); //used to terminate the thread
+        ConcurrentHashMap<Integer, Future<Integer>> chunksForFile = chunksStored.get(fileId);
+        if (chunksForFile != null){
+            chunksForFile.remove(chunkNo);
+        }
+    }
+
+	public Boolean getFuture(String fileId, Integer chunkNo){
+		ConcurrentHashMap<Integer, Future<Integer>> chunksForFile = chunksStored.get(fileId);
+		if (chunksForFile != null){
+			Future<Integer> future = chunksForFile.get(chunkNo);
+			if (future != null){
+                try {
+                    future.get();
+                    System.out.println("File " + FileProcessor.createChunkName(fileId,chunkNo) + " processed");
+                    return true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+		}
+		return false;
+	}
+
+	public void addFuture(String fileId, Integer chunkNo, Future<Integer> future){
+		chunksStored.putIfAbsent(fileId, new ConcurrentHashMap<>());
+		chunksStored.get(fileId).put(chunkNo, future);
 	}
 
 	public Map<Pair<String,Integer>, Pair<Byte, HashSet<String>>> getSortedMap(){

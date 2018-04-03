@@ -15,14 +15,11 @@ public class PutChunkReceive implements Runnable {
 	
 	private DatagramPacket putChunkPacket;
 	private MulticastSocket mcSocket;
-	private ChunksStoredFutures chunksStoredFutures;
 	private ReplicationStatus repStatus;
 	private Set<String> filesToNotWatch;
 
-	public PutChunkReceive(DatagramPacket putChunkPacket, ChunksStoredFutures chunksStoredFutures,
-                           ReplicationStatus repStatus, MulticastSocket mcSocket, Set<String> filesToNotWatch) {
+	public PutChunkReceive(DatagramPacket putChunkPacket, ReplicationStatus repStatus, MulticastSocket mcSocket, Set<String> filesToNotWatch) {
 		this.putChunkPacket = putChunkPacket;
-		this.chunksStoredFutures = chunksStoredFutures;
 		this.repStatus = repStatus;
 		this.mcSocket = mcSocket;
 		this.filesToNotWatch = filesToNotWatch;
@@ -92,7 +89,7 @@ public class PutChunkReceive implements Runnable {
         if (repStatus.getBytesUsed() + body.length() < repStatus.getBytesReserved()){
             repStatus.incrementBytesUsed(body.length());
             Future<Integer> future = FileProcessor.writeSingleChunkAsync(Paths.get(chunkPath), body.getBytes(Charset.forName("ISO_8859_1")));
-			chunksStoredFutures.add(fileId, chunkNo, future);
+			repStatus.addFuture(fileId, chunkNo, future);
         }else{
             System.out.println("No disk space available: " + repStatus.getBytesUsed() + "/" + repStatus.getBytesReserved());
         }

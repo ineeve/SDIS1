@@ -10,17 +10,15 @@ import utils.ThreadUtils;
 public class MDBListener implements Runnable {
 
 	private ExecutorService pool = Executors.newCachedThreadPool();
-	
-	private ChunksStoredFutures chunksStoredFutures; //filename to chunks
+
 	private ReplicationStatus repStatus;
 	private MulticastSocket mdbSocket;
 	private MulticastSocket mcSocket;
 	private Set<String> filesToNotWatch;
 
-	public MDBListener(ReplicationStatus repStatus, Set<String> filesToNotWatch, ChunksStoredFutures chunksStoredFutures) {
+	public MDBListener(ReplicationStatus repStatus, Set<String> filesToNotWatch) {
 		this.filesToNotWatch = filesToNotWatch;
 		this.repStatus = repStatus;
-		this.chunksStoredFutures = chunksStoredFutures;
 		try {
 			mcSocket = new MulticastSocket(Config.getMcPort());
 			mcSocket.joinGroup(Config.getMcIP());
@@ -45,7 +43,7 @@ public class MDBListener implements Runnable {
 			if (Messages.isEnhanced(putChunkPacket)) {
 				ThreadUtils.waitBetween(10, 400);
 			}
-            pool.execute(new PutChunkReceive(putChunkPacket, chunksStoredFutures, repStatus, mcSocket, filesToNotWatch));
+            pool.execute(new PutChunkReceive(putChunkPacket, repStatus, mcSocket, filesToNotWatch));
         }else{
             System.out.println("Caught unhandled message in MDBListener");
         }
