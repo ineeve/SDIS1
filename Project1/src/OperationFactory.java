@@ -20,7 +20,7 @@ public class OperationFactory {
 		case "STATE":
 			return Operation.STATE;
 		default:
-			return null;
+			return Operation.INVALID;
 		}
 	}
 

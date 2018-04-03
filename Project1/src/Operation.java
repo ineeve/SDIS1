@@ -7,5 +7,6 @@ public enum Operation {
 	RECLAIM,
 	STATE,
 	BACKUPENH,
-    RESTOREENH;
+    RESTOREENH,
+    INVALID;
 }
