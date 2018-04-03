@@ -2,13 +2,13 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 
-public class RemovedSend implements Runnable {
+public class SendRemoved implements Runnable {
 
     private MulticastSocket mcSocket;
     private String fileId;
     private Integer chunkNo;
 
-    public RemovedSend(MulticastSocket mcSocket,String fileId, Integer chunkNo) {
+    public SendRemoved(MulticastSocket mcSocket, String fileId, Integer chunkNo) {
         this.mcSocket = mcSocket;
         this.fileId = fileId;
         this.chunkNo = chunkNo;

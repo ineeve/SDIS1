@@ -67,6 +67,6 @@ public class WatchStoredFolder implements Runnable{
     private void reclaimSpace(Path filePath){
         String fileId = FileProcessor.getFileIdByPath(filePath.getFileName());
         Integer chunkNo = FileProcessor.getChunkNo(filePath.getFileName());
-        pool.execute(new RemovedSend(mcSocket, fileId,chunkNo));
+        pool.execute(new SendRemoved(mcSocket, fileId,chunkNo));
     }
 }
